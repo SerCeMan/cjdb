@@ -1,9 +1,8 @@
 package scheme.dto;
 
-import sql.Type;
+import sql.types.Type;
 
 import javax.xml.bind.annotation.XmlAttribute;
-import java.security.PublicKey;
 import java.util.Objects;
 
 /**

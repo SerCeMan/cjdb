@@ -1,7 +1,9 @@
-import config.ConfigStorage;
 import config.Props;
 import dagger.ObjectGraph;
-import sql.DataSet;
+import sql.Query;
+import sql.parser.QueryParser;
+import sql.query.QueryHandler;
+import sql.query.QueryResult;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -13,26 +15,33 @@ import javax.inject.Singleton;
 @Singleton
 public class CjDB implements CjDataBase {
 
-    private ConfigStorage configStorage;
+    private QueryParser queryParser;
+    private QueryHandler queryHandler;
 
     @Inject
-    public CjDB(ConfigStorage configStorage) {
-        this.configStorage = configStorage;
+    public CjDB(QueryParser queryParser, QueryHandler queryHandler) {
+        this.queryParser = queryParser;
+        this.queryHandler = queryHandler;
     }
 
     public static void main(String[] args) {
         ObjectGraph objectGraph = ObjectGraph.create(new CjDbModule());
         CjDataBase db = objectGraph.get(CjDB.class);
-        System.out.println(db.exec(Props.PATH));
+        db.execPrint(Props.PATH);
     }
 
     @Override
-    public String execPrint(String sql) {
-        return configStorage.getProperty(sql);
+    public void execPrint(String sql) {
+        QueryResult result = exec(sql);
+        System.out.println("successful: " + result.isSuccessful());
+        if(result.hasResult()) {
+            System.out.println(result.getResult());
+        }
     }
 
     @Override
-    public DataSet exec(String sql) {
-        return null;
+    public QueryResult exec(String sql) {
+        Query query = queryParser.parseQuery(sql);
+        return queryHandler.execute(query);
     }
 }

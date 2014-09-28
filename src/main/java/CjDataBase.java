@@ -1,4 +1,4 @@
-import sql.DataSet;
+import sql.query.DataSet;
 
 /**
  * Database
@@ -8,7 +8,7 @@ import sql.DataSet;
  */
 public interface CjDataBase {
 
-    String execPrint(String sql);
+    void execPrint(String sql);
 
-    DataSet exec(String sql);
+    sql.query.QueryResult exec(String sql);
 }

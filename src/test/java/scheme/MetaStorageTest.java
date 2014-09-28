@@ -11,7 +11,7 @@ import org.junit.Test;
 import scheme.dto.Column;
 import scheme.dto.Metainfo;
 import scheme.dto.Table;
-import sql.Type;
+import sql.types.Type;
 
 import javax.inject.Inject;
 import java.io.File;

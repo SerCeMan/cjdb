@@ -1,4 +1,6 @@
-package sql;
+package sql.query;
+
+import java.util.Collection;
 
 /**
  * По сути - простой аналог {@link java.sql.ResultSet}
@@ -9,4 +11,8 @@ package sql;
 public interface DataSet {
 
     int getRowCount();
+
+    Row getRow(int number);
+
+    Collection<Row> getRows();
 }
