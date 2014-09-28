@@ -1,0 +1,20 @@
+apply plugin: 'java'
+
+sourceCompatibility = 1.5
+version = '1.0'
+
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    provided
+}
+
+dependencies {
+    compile 'com.squareup.dagger:dagger:1.2.2'
+    compile 'com.google.guava:guava:18.0'
+
+    compile 'com.squareup.dagger:dagger-compiler:1.2.2'
+    testCompile 'junit:junit:4.11'
+}
