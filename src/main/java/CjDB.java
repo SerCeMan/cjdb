@@ -1,6 +1,7 @@
 import config.Props;
 import dagger.ObjectGraph;
 import sql.Query;
+import sql.QueryExecutor;
 import sql.parser.QueryParser;
 import sql.query.QueryHandler;
 import sql.query.QueryResult;
@@ -16,12 +17,12 @@ import javax.inject.Singleton;
 public class CjDB implements CjDataBase {
 
     private QueryParser queryParser;
-    private QueryHandler queryHandler;
+    private QueryExecutor queryExecutor;
 
     @Inject
-    public CjDB(QueryParser queryParser, QueryHandler queryHandler) {
+    public CjDB(QueryParser queryParser, QueryExecutor queryExecutor) {
         this.queryParser = queryParser;
-        this.queryHandler = queryHandler;
+        this.queryExecutor = queryExecutor;
     }
 
     public static void main(String[] args) {
@@ -42,6 +43,6 @@ public class CjDB implements CjDataBase {
     @Override
     public QueryResult exec(String sql) {
         Query query = queryParser.parseQuery(sql);
-        return queryHandler.execute(query);
+        return queryExecutor.execute(query);
     }
 }
