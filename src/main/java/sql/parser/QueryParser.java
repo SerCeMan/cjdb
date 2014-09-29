@@ -1,6 +1,6 @@
 package sql.parser;
 
-import sql.Query;
+import sql.queries.Query;
 
 /**
  * @author Sergey Tselovalnikov

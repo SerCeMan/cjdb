@@ -1,6 +1,6 @@
 package sql.queries.dml;
 
-import sql.Query;
+import sql.queries.Query;
 
 import java.util.List;
 

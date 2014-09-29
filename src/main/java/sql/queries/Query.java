@@ -1,4 +1,4 @@
-package sql;
+package sql.queries;
 
 /**
  * @author Sergey Tselovalnikov

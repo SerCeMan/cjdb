@@ -1,5 +1,3 @@
-import sql.query.DataSet;
-
 /**
  * Database
  *
@@ -10,5 +8,5 @@ public interface CjDataBase {
 
     void execPrint(String sql);
 
-    sql.query.QueryResult exec(String sql);
+    sql.result.QueryResult exec(String sql);
 }

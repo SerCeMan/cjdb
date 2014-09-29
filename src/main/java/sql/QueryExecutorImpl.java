@@ -1,7 +1,8 @@
 package sql;
 
-import sql.query.QueryHandler;
-import sql.query.QueryResult;
+import sql.handlers.QueryHandler;
+import sql.queries.Query;
+import sql.result.QueryResult;
 
 import javax.inject.Singleton;
 import java.util.concurrent.ConcurrentHashMap;

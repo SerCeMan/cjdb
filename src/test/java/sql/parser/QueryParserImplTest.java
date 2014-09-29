@@ -6,7 +6,7 @@ import dagger.ObjectGraph;
 import dagger.Provides;
 import org.junit.Before;
 import org.junit.Test;
-import sql.Query;
+import sql.queries.Query;
 import sql.queries.dml.SelectQuery;
 
 import javax.inject.Inject;

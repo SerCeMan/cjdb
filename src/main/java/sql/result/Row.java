@@ -1,4 +1,4 @@
-package sql.query;
+package sql.result;
 
 import java.util.List;
 

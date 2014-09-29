@@ -1,4 +1,4 @@
-package sql.query;
+package sql.result;
 
 /**
  * @author Sergey Tselovalnikov

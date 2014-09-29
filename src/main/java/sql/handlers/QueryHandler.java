@@ -1,6 +1,7 @@
-package sql.query;
+package sql.handlers;
 
-import sql.Query;
+import sql.queries.Query;
+import sql.result.QueryResult;
 
 /**
  * @author Sergey Tselovalnikov

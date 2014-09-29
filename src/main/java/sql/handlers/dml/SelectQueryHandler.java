@@ -1,8 +1,9 @@
-package sql.handlers;
+package sql.handlers.dml;
 
 import sql.QueryExecutor;
+import sql.handlers.RegisterableQueryHandler;
 import sql.queries.dml.SelectQuery;
-import sql.query.QueryResult;
+import sql.result.QueryResult;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;

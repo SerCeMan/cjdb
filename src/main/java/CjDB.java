@@ -1,10 +1,9 @@
 import config.Props;
 import dagger.ObjectGraph;
-import sql.Query;
+import sql.queries.Query;
 import sql.QueryExecutor;
 import sql.parser.QueryParser;
-import sql.query.QueryHandler;
-import sql.query.QueryResult;
+import sql.result.QueryResult;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
