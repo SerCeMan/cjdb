@@ -1,7 +1,7 @@
 package storage;
 
-/**
- * Created by serce on 18.09.14.
- */
+import javax.inject.Singleton;
+
+@Singleton
 public class DiskManager {
 }
