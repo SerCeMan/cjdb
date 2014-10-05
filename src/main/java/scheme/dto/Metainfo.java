@@ -19,6 +19,10 @@ public class Metainfo {
     @XmlElement(name = "table")
     private List<Table> tables = new ArrayList<>();
 
+    public List<Table> getTables() {
+        return tables;
+    }
+
     public void addTable(Table table) {
         tables.add(table);
     }

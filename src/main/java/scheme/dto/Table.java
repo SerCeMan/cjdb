@@ -32,6 +32,10 @@ public class Table {
         this.name = name;
     }
 
+    public List<Column> getColumns() {
+        return columns;
+    }
+
     public String getName() {
         return name;
     }

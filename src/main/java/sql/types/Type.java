@@ -5,6 +5,16 @@ package sql.types;
  * @since 28.09.14
  */
 public enum Type {
-    INT,
-    VARCHAR
+    INT(4),
+    VARCHAR(20);
+
+    final int byteCount;
+
+    Type(int byteCount) {
+        this.byteCount = byteCount;
+    }
+
+    public int byteCount() {
+        return byteCount;
+    }
 }
