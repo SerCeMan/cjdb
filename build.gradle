@@ -14,6 +14,15 @@ jar {
     }
 }
 
+test {
+    test {
+        afterTest { desc, result ->
+            println "${result.resultType} executing test [${desc.className}]"
+        }
+    }
+    dependsOn 'cleanTest'
+}
+
 dependencies {
     compile 'com.squareup.dagger:dagger:1.2.2'
     compile 'com.google.guava:guava:18.0'
