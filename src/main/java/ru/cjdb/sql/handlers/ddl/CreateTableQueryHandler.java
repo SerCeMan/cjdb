@@ -27,8 +27,8 @@ public class CreateTableQueryHandler extends RegisterableQueryHandler<CreateTabl
     MetaStorage metaStorage;
 
     @Inject
-    public CreateTableQueryHandler(QueryExecutor queryExecutor) {
-        super(CreateTableQuery.class, queryExecutor);
+    public CreateTableQueryHandler() {
+        super(CreateTableQuery.class);
     }
 
     @Override

@@ -16,6 +16,12 @@ public class QueryExecutorImpl implements QueryExecutor {
 
     private final ConcurrentHashMap<Class<? extends Query>, QueryHandler<? extends Query>> handlers = new ConcurrentHashMap<>();
 
+    public void registerHandlers(QueryHandler<?>... queryHandlers) {
+        for (QueryHandler<?> handler : queryHandlers) {
+            handlers.put(handler.getQueryClass(), handler);
+        }
+    }
+
     @Override
     @SuppressWarnings("unchecked")
     public QueryResult execute(Query query) {
@@ -26,8 +32,4 @@ public class QueryExecutorImpl implements QueryExecutor {
         return handler.execute(query);
     }
 
-    @Override
-    public <T extends Query> void registerHandler(Class<T> clazz, QueryHandler<T> handler) {
-        handlers.put(clazz, handler);
-    }
 }

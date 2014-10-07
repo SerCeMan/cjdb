@@ -10,6 +10,8 @@ import java.util.List;
 import static java.util.Arrays.asList;
 
 /**
+ * Информация о табличке
+ *
  * @author Sergey Tselovalnikov
  * @since 28.09.14
  */

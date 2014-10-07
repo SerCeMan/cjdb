@@ -1,6 +1,8 @@
 package ru.cjdb.sql.result;
 
 /**
+ * Результат выполнения запроса
+ *
  * @author Sergey Tselovalnikov
  * @since 28.09.14
  */

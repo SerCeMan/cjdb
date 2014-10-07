@@ -1,6 +1,5 @@
 package ru.cjdb.sql.handlers.dml;
 
-import ru.cjdb.sql.QueryExecutor;
 import ru.cjdb.sql.handlers.RegisterableQueryHandler;
 import ru.cjdb.sql.queries.dml.SelectQuery;
 import ru.cjdb.sql.result.QueryResult;
@@ -15,8 +14,8 @@ import javax.inject.Singleton;
 @Singleton
 public class SelectQueryHandler extends RegisterableQueryHandler<SelectQuery> {
     @Inject
-    public SelectQueryHandler(QueryExecutor queryExecutor) {
-        super(SelectQuery.class, queryExecutor);
+    public SelectQueryHandler() {
+        super(SelectQuery.class);
     }
 
     @Override

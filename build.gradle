@@ -1,14 +1,17 @@
 apply plugin: 'java'
 
 sourceCompatibility = 1.8
+
 version = '1.0'
 
 repositories {
     mavenCentral()
 }
 
-configurations {
-    provided
+jar {
+    manifest {
+        attributes 'Main-Class': 'ru.cjdb.CjDatabase'
+    }
 }
 
 dependencies {

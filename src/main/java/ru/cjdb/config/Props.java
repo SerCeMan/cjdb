@@ -1,6 +1,8 @@
 package ru.cjdb.config;
 
 /**
+ * Константы пропертей, лежащих в конфигах
+ *
  * @author Sergey Tselovalnikov
  * @since 28.09.14
  */

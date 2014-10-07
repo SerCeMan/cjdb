@@ -6,6 +6,8 @@ import javax.xml.bind.annotation.XmlAttribute;
 import java.util.Objects;
 
 /**
+ * Информация о колонке
+ *
  * @author Sergey Tselovalnikov
  * @since 28.09.14
  */

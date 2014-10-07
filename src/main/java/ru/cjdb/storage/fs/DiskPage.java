@@ -1,37 +1,36 @@
 package ru.cjdb.storage.fs;
 
-import java.util.Optional;
-
 /**
+ * Страничка с данными
+ *
  * @author Sergey Tselovalnikov
  * @since 05.10.14
  */
 public class DiskPage {
     private byte[] data;
-    private Optional<DiskPage> next;
-    private Optional<DiskPage> previous;
+    // Ох, в ByteBuffer индекс - инт, итого - 2GB на табличку :(
+    // Но, думаю, нам хватит
+    private int offset;
+    private boolean dirty;
 
-    public DiskPage(byte[] data) {
+    public DiskPage(byte[] data, int offset) {
         this.data = data;
+        this.offset = offset;
+    }
+
+    public int getOffset() {
+        return offset;
+    }
+
+    public boolean isDirty() {
+        return dirty;
+    }
+
+    public void setDirty(boolean dirty) {
+        this.dirty = dirty;
     }
 
     public byte[] getData() {
         return data;
-    }
-
-    public Optional<DiskPage> getNext() {
-        return next;
-    }
-
-    public void setNext(DiskPage next) {
-        this.next = Optional.ofNullable(next);
-    }
-
-    public Optional<DiskPage> getPrevious() {
-        return previous;
-    }
-
-    public void setPrevious(DiskPage previous) {
-        this.previous = Optional.ofNullable(previous);
     }
 }

@@ -9,6 +9,8 @@ import java.util.List;
 import static java.util.Arrays.asList;
 
 /**
+ * Вся метаинформация БД
+ *
  * @author Sergey Tselovalnikov
  * @since 28.09.14
  */

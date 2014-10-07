@@ -32,8 +32,8 @@ public class InsertQueryHandler extends RegisterableQueryHandler<InsertQuery> {
     ConfigStorage configStorage;
 
     @Inject
-    public InsertQueryHandler(QueryExecutor queryExecutor) {
-        super(InsertQuery.class, queryExecutor);
+    public InsertQueryHandler() {
+        super(InsertQuery.class);
     }
 
     @Override
@@ -54,23 +54,41 @@ public class InsertQueryHandler extends RegisterableQueryHandler<InsertQuery> {
         DiskManager manager = new DiskManager(configStorage.getRootPath() + "/" + tableName);
         DiskPage freePage = manager.getFreePage();
 
-        int bytePerColumnCount = calculateColumnByteCount(table);
-        int columnCount = Constants.PAGE_SIZE / bytePerColumnCount;
-        ByteBuffer buffer = ByteBuffer.wrap(freePage.getData(), 0, 4);
-        int tmp = buffer.getInt();
-        for(int i = 0; i < columnCount; i++) {
-            // нашли пустую колонку
-            if((tmp & columnCount) == 0) {
-                ByteBuffer contentBUffer = ByteBuffer.wrap(freePage.getData());
-                contentBUffer.position(bytePerColumnCount * i + Constants.METAINFO_PAGE_BLOCK_SIZE);
-                break;
+        int bytePerRowCount = calculateRowByteCount(table);
+        int rowCount = calculateRowCount(bytePerRowCount);
+
+        ByteBuffer buffer = ByteBuffer.wrap(freePage.getData());
+
+        int freePageOffset = 0;
+        byte current = 0;
+        for (int i = 0; i < rowCount; i++) {
+            int offset = i % Byte.SIZE;
+            if (offset == 0) {
+                current = buffer.get();
+            }
+            byte bit = (byte) ((current >> offset) & 1);
+            if (bit == 0) {
+                // нашли свободную страницу
+                freePageOffset = i * bytePerRowCount + metaDataByteCount(bytePerRowCount);
             }
         }
+        buffer.position(freePageOffset);
+        buffer.putInt(1); // TODO put bytes;
+        freePage.setDirty(true);
+        manager.flush();
         return OkQueryResult.INSTANCE;
     }
 
+    private int calculateRowCount(int bytePerRowCount) {
+        return (Constants.PAGE_SIZE - metaDataByteCount(bytePerRowCount)) / bytePerRowCount;
+    }
 
-    private int calculateColumnByteCount(Table table) {
+    private int metaDataByteCount(int bytePerColumnCount) {
+        return (int)Math.ceil(bytePerColumnCount / (float)Byte.SIZE);
+    }
+
+
+    private int calculateRowByteCount(Table table) {
         return table.getColumns()
                 .stream()
                 .collect(Collectors.summingInt(column -> column.getType().byteCount()));

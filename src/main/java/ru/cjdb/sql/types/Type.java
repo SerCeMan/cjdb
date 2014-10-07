@@ -1,6 +1,8 @@
 package ru.cjdb.sql.types;
 
 /**
+ * Тип колонки в базе
+ *
  * @author Sergey Tselovalnikov
  * @since 28.09.14
  */

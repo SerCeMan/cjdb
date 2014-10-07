@@ -15,7 +15,7 @@ import static java.lang.ClassLoader.getSystemResourceAsStream;
  */
 @Singleton
 public class ConfigStorage {
-    private Properties properties = new Properties();
+    private final Properties properties = new Properties();
 
     @Inject
     public ConfigStorage() {
