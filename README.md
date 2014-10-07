@@ -1,7 +1,7 @@
 CjDB
 ====
 
-Cool Java DataBase
+Cool Java Database
 
 Сборка
 ---
