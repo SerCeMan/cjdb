@@ -27,3 +27,6 @@ out/
 ### Gradle ###
 .gradle
 build/
+
+### CjDB ###
+db.properties
