@@ -9,9 +9,9 @@ import ru.cjdb.sql.handlers.RegisterableQueryHandler;
 import ru.cjdb.sql.queries.dml.InsertQuery;
 import ru.cjdb.sql.result.OkQueryResult;
 import ru.cjdb.sql.result.QueryResult;
-import ru.cjdb.fs.Constants;
-import ru.cjdb.fs.DiskManager;
-import ru.cjdb.fs.DiskPage;
+import ru.cjdb.storage.fs.Constants;
+import ru.cjdb.storage.fs.DiskManager;
+import ru.cjdb.storage.fs.DiskPage;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;

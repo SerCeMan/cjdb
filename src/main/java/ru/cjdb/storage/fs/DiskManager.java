@@ -1,4 +1,4 @@
-package ru.cjdb.fs;
+package ru.cjdb.storage.fs;
 
 import ru.cjdb.utils.FileUtils;
 
