@@ -1,7 +1,7 @@
 package ru.cjdb.sql.queries.ddl;
 
 import ru.cjdb.sql.queries.Query;
-import ru.cjdb.sql.types.Type;
+import ru.cjdb.scheme.types.Type;
 
 import java.util.List;
 

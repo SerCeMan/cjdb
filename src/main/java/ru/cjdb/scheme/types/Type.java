@@ -1,4 +1,4 @@
-package ru.cjdb.sql.types;
+package ru.cjdb.scheme.types;
 
 /**
  * Тип колонки в базе

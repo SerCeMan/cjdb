@@ -11,8 +11,7 @@ import org.junit.Test;
 import ru.cjdb.scheme.dto.Column;
 import ru.cjdb.scheme.dto.Metainfo;
 import ru.cjdb.scheme.dto.Table;
-import ru.cjdb.sql.types.Type;
-import ru.cjdb.sql.types.Types;
+import ru.cjdb.scheme.types.Types;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -41,6 +40,7 @@ public class MetaStorageTest {
         Metainfo metainfo = new Metainfo();
         Table table = new Table("test_table");
         table.addColumns(new Column("test", Types.INT));
+        table.addColumns(new Column("test2", Types.varchar(10)));
         metainfo.addTables(table);
 
         metaStorage.saveMetainfo(metainfo);
