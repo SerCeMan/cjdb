@@ -4,7 +4,6 @@ import ru.cjdb.config.ConfigStorage;
 import ru.cjdb.scheme.MetaStorage;
 import ru.cjdb.scheme.dto.Metainfo;
 import ru.cjdb.scheme.dto.Table;
-import ru.cjdb.sql.QueryExecutor;
 import ru.cjdb.sql.handlers.RegisterableQueryHandler;
 import ru.cjdb.sql.queries.dml.InsertQuery;
 import ru.cjdb.sql.result.OkQueryResult;
@@ -91,6 +90,6 @@ public class InsertQueryHandler extends RegisterableQueryHandler<InsertQuery> {
     private int calculateRowByteCount(Table table) {
         return table.getColumns()
                 .stream()
-                .collect(Collectors.summingInt(column -> column.getType().byteCount()));
+                .collect(Collectors.summingInt(column -> column.getType().bytes()));
     }
 }

@@ -12,6 +12,7 @@ import ru.cjdb.scheme.dto.Column;
 import ru.cjdb.scheme.dto.Metainfo;
 import ru.cjdb.scheme.dto.Table;
 import ru.cjdb.sql.types.Type;
+import ru.cjdb.sql.types.Types;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -39,7 +40,7 @@ public class MetaStorageTest {
     public void testSaved() {
         Metainfo metainfo = new Metainfo();
         Table table = new Table("test_table");
-        table.addColumns(new Column("test", Type.INT));
+        table.addColumns(new Column("test", Types.INT));
         metainfo.addTables(table);
 
         metaStorage.saveMetainfo(metainfo);
