@@ -1,8 +1,13 @@
 package ru.cjdb.scheme.dto;
 
-import ru.cjdb.sql.types.Type;
+import ru.cjdb.scheme.types.Type;
+import ru.cjdb.scheme.types.impl.IntType;
+import ru.cjdb.scheme.types.impl.VarcharType;
 
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlElements;
+import javax.xml.bind.annotation.XmlType;
 import java.util.Objects;
 
 /**
@@ -14,7 +19,11 @@ import java.util.Objects;
 public final class Column {
     @XmlAttribute(name = "name")
     private String name;
-    @XmlAttribute(name = "type")
+
+    @XmlElements({
+            @XmlElement(name = "int", type = IntType.class),
+            @XmlElement(name = "varchar", type = VarcharType.class)
+    })
     private Type type;
 
     Column() {
