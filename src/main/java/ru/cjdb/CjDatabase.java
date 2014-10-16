@@ -2,6 +2,7 @@ package ru.cjdb;
 
 import ru.cjdb.config.Props;
 import dagger.ObjectGraph;
+import ru.cjdb.printer.ResultPrinter;
 import ru.cjdb.sql.queries.Query;
 import ru.cjdb.sql.QueryExecutor;
 import ru.cjdb.sql.parser.QueryParser;
@@ -21,6 +22,7 @@ public class CjDatabase {
 
     private QueryParser queryParser;
     private QueryExecutor queryExecutor;
+    private ResultPrinter printer;
 
     @Inject
     public CjDatabase(QueryParser queryParser, QueryExecutor queryExecutor) {
@@ -35,15 +37,8 @@ public class CjDatabase {
     }
 
     public void execPrint(String sql) {
-        QueryResult result = exec(sql);
-        System.out.println("successful: " + result.isSuccessful());
-        if(result.hasResult()) {
-            System.out.println(result.getResult());
-        }
-    }
-
-    public QueryResult exec(String sql) {
         Query query = queryParser.parseQuery(sql);
-        return queryExecutor.execute(query);
+        QueryResult result = queryExecutor.execute(query);
+        printer.print(result);
     }
 }
