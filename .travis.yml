@@ -2,4 +2,4 @@ language: java
 jdk:
   - oraclejdk8
 before_script:
-  - echo "db.url=/tmp/" > src/test/resources/db.properties
+  - echo "db.path=/tmp/" > src/test/resources/db.properties
