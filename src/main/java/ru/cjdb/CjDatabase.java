@@ -6,10 +6,13 @@ import ru.cjdb.printer.ResultPrinter;
 import ru.cjdb.sql.queries.Query;
 import ru.cjdb.sql.QueryExecutor;
 import ru.cjdb.sql.parser.QueryParser;
+import ru.cjdb.sql.result.DataSet;
 import ru.cjdb.sql.result.QueryResult;
+import ru.cjdb.sql.result.Row;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.util.Collection;
 import java.util.Scanner;
 
 /**
@@ -26,9 +29,10 @@ public class CjDatabase {
     private ResultPrinter printer;
 
     @Inject
-    public CjDatabase(QueryParser queryParser, QueryExecutor queryExecutor) {
+    public CjDatabase(QueryParser queryParser, QueryExecutor queryExecutor, ResultPrinter printer) {
         this.queryParser = queryParser;
         this.queryExecutor = queryExecutor;
+        this.printer = printer;
     }
 
     public static void main(String[] args) {
@@ -45,6 +49,6 @@ public class CjDatabase {
     public void execPrint(String sql) {
         Query query = queryParser.parseQuery(sql);
         QueryResult result = queryExecutor.execute(query);
-        //printer.print(result);
+        //printer.print();
     }
 }

@@ -1,6 +1,7 @@
 package ru.cjdb;
 
 import dagger.Module;
+import ru.cjdb.printer.ResultPrinterModule;
 import ru.cjdb.scheme.MetaStorageModule;
 import ru.cjdb.sql.QueryExecutorModule;
 import ru.cjdb.sql.parser.QueryParserModule;
@@ -14,7 +15,8 @@ import ru.cjdb.sql.parser.QueryParserModule;
         includes = {
             QueryParserModule.class,
             QueryExecutorModule.class,
-            MetaStorageModule.class
+            MetaStorageModule.class,
+            ResultPrinterModule.class
         }
 )
 public class CjDbModule {
