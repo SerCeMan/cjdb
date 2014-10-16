@@ -5,7 +5,6 @@ import javax.inject.Singleton;
 import java.io.*;
 import java.util.Properties;
 
-import static java.lang.ClassLoader.getSystemResourceAsStream;
 
 /**
  * Хранилище конфигурации
@@ -19,7 +18,7 @@ public class ConfigStorage {
 
     @Inject
     public ConfigStorage() {
-        InputStream configFile = getSystemResourceAsStream("db.properties");
+        InputStream configFile = this.getClass().getResourceAsStream("db.properties");
         try {
             properties.load(configFile);
         } catch (IOException e) {
