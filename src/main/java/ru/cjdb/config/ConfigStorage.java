@@ -21,8 +21,8 @@ public class ConfigStorage {
         InputStream configFile = getConfigFile();
         try {
             properties.load(configFile);
-        } catch (IOException e) {
-            throw new RuntimeException("Please provide db.properties file");
+        } catch (Exception e) {
+            throw new RuntimeException("Please provide db.properties file", e);
         }
     }
 
@@ -33,6 +33,12 @@ public class ConfigStorage {
         InputStream configFile = this.getClass().getResourceAsStream("db.properties");
         if (configFile == null) {
             configFile = ClassLoader.getSystemResourceAsStream("db.properties");
+        }
+        if (configFile == null) {
+            configFile = this.getClass().getResourceAsStream("/db.properties");
+        }
+        if (configFile == null) {
+            configFile = ClassLoader.getSystemResourceAsStream("/db.properties");
         }
         return configFile;
     }
