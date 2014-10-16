@@ -1,6 +1,5 @@
 package ru.cjdb.sql;
 
-import ru.cjdb.sql.handlers.QueryHandler;
 import ru.cjdb.sql.queries.Query;
 import ru.cjdb.sql.result.QueryResult;
 

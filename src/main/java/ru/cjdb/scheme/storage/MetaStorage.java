@@ -1,11 +1,9 @@
-package ru.cjdb.scheme;
+package ru.cjdb.scheme.storage;
 
 import ru.cjdb.scheme.dto.Metainfo;
 
 /**
  * Сервис, сохраняющий и позволяющий получить метаинформацию
- *
- * TODO Сделать бы какую-нибудь правильную оберточку, позволяющую удобно работать с метаинфой
  *
  * @author Sergey Tselovalnikov
  * @since 28.09.14

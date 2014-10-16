@@ -1,10 +1,8 @@
 package ru.cjdb.sql.handlers.ddl;
 
-import ru.cjdb.scheme.MetaStorage;
+import ru.cjdb.scheme.MetainfoService;
 import ru.cjdb.scheme.dto.Column;
-import ru.cjdb.scheme.dto.Metainfo;
 import ru.cjdb.scheme.dto.Table;
-import ru.cjdb.sql.QueryExecutor;
 import ru.cjdb.sql.handlers.RegisterableQueryHandler;
 import ru.cjdb.sql.queries.ddl.CreateTableQuery;
 import ru.cjdb.sql.result.OkQueryResult;
@@ -24,7 +22,7 @@ import static java.util.stream.Collectors.toList;
 public class CreateTableQueryHandler extends RegisterableQueryHandler<CreateTableQuery> {
 
     @Inject
-    MetaStorage metaStorage;
+    MetainfoService metainfoService;
 
     @Inject
     public CreateTableQueryHandler() {
@@ -33,15 +31,13 @@ public class CreateTableQueryHandler extends RegisterableQueryHandler<CreateTabl
 
     @Override
     public QueryResult execute(CreateTableQuery query) {
-        Metainfo metainfo = metaStorage.getMetainfo();
         Table table = new Table(query.getName());
         List<Column> columns = query.getRows()
                     .stream()
                     .map(def -> new Column(def.getName(), def.getType()))
                     .collect(toList());
         table.addColumns(columns);
-        metainfo.addTable(table);
-        metaStorage.saveMetainfo(metainfo);
+        metainfoService.addTable(table);
         return OkQueryResult.INSTANCE;
     }
 }

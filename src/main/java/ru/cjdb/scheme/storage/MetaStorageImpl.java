@@ -1,4 +1,4 @@
-package ru.cjdb.scheme;
+package ru.cjdb.scheme.storage;
 
 import ru.cjdb.config.ConfigStorage;
 import ru.cjdb.scheme.dto.Metainfo;

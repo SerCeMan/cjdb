@@ -11,6 +11,8 @@ import org.junit.Test;
 import ru.cjdb.scheme.dto.Column;
 import ru.cjdb.scheme.dto.Metainfo;
 import ru.cjdb.scheme.dto.Table;
+import ru.cjdb.scheme.storage.MetaStorage;
+import ru.cjdb.scheme.storage.MetaStorageImpl;
 import ru.cjdb.scheme.types.Types;
 
 import javax.inject.Inject;

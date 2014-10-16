@@ -1,18 +1,14 @@
 package ru.cjdb;
 
-import ru.cjdb.config.Props;
 import dagger.ObjectGraph;
 import ru.cjdb.printer.ResultPrinter;
-import ru.cjdb.sql.queries.Query;
 import ru.cjdb.sql.QueryExecutor;
 import ru.cjdb.sql.parser.QueryParser;
-import ru.cjdb.sql.result.DataSet;
+import ru.cjdb.sql.queries.Query;
 import ru.cjdb.sql.result.QueryResult;
-import ru.cjdb.sql.result.Row;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.util.Collection;
 import java.util.Scanner;
 
 /**
@@ -49,6 +45,6 @@ public class CjDatabase {
     public void execPrint(String sql) {
         Query query = queryParser.parseQuery(sql);
         QueryResult result = queryExecutor.execute(query);
-        //printer.print();
+        printer.print(result);
     }
 }
