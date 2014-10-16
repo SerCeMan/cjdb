@@ -9,7 +9,7 @@ import ru.cjdb.sql.queries.dml.InsertQuery;
 import ru.cjdb.sql.result.OkQueryResult;
 import ru.cjdb.sql.result.QueryResult;
 import ru.cjdb.storage.fs.Constants;
-import ru.cjdb.storage.fs.DiskManager;
+import ru.cjdb.storage.fs.DiskManagerImpl;
 import ru.cjdb.storage.fs.DiskPage;
 
 import javax.inject.Inject;
@@ -50,7 +50,7 @@ public class InsertQueryHandler extends RegisterableQueryHandler<InsertQuery> {
         }
         Table table = oTable.get();
 
-        DiskManager manager = new DiskManager(configStorage.getRootPath() + "/" + tableName);
+        DiskManagerImpl manager = new DiskManagerImpl(configStorage.getRootPath() + "/" + tableName);
         DiskPage freePage = manager.getFreePage();
 
         int bytePerRowCount = calculateRowByteCount(table);

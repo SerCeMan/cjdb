@@ -13,5 +13,5 @@ Cool Java Database
 Запуск тестов
 ---
 ```bash
-./gradlew test
+./gradlew check
 ```

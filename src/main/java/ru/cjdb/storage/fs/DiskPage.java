@@ -1,25 +1,38 @@
 package ru.cjdb.storage.fs;
 
+import java.nio.ByteBuffer;
+
 /**
  * Страничка с данными
+ * <p>
+ * Первые 4 байта - номер следующей свободной страницы
  *
  * @author Sergey Tselovalnikov
  * @since 05.10.14
  */
 public class DiskPage {
+    private final int id;
+    private int nextFreePage;
     private byte[] data;
-    // Ох, в ByteBuffer индекс - инт, итого - 2GB на табличку :(
-    // Но, думаю, нам хватит
-    private int offset;
     private boolean dirty;
 
-    public DiskPage(byte[] data, int offset) {
+    public DiskPage(int id, byte[] data) {
+        this.id = id;
         this.data = data;
-        this.offset = offset;
+        nextFreePage = ByteBuffer.wrap(data).getInt();
     }
 
-    public int getOffset() {
-        return offset;
+    public int getNextFreePage() {
+        return nextFreePage;
+    }
+
+    public void setNextFreePage(int nextFreePage) {
+        ByteBuffer.wrap(data).putInt(nextFreePage);
+        this.nextFreePage = nextFreePage;
+    }
+
+    public int getId() {
+        return id;
     }
 
     public boolean isDirty() {
