@@ -152,6 +152,7 @@ public class DiskManagerImpl implements DiskManager {
             previousPage = page;
             diskCache.put(page.getId(), page);
         }
+        counter.addAndGet(EXPAND_PAGE_COUNT);
     }
 
     /**

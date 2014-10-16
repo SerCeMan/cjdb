@@ -13,7 +13,7 @@ import ru.cjdb.sql.handlers.dml.SelectQueryHandler;
  * @author Sergey Tselovalnikov
  * @since 29.09.14
  */
-@Module(injects = QueryExecutor.class, includes = MetaStorageModule.class)
+@Module(injects = QueryExecutor.class, includes = {MetaStorageModule.class})
 public class QueryExecutorModule {
     @Provides
     public QueryExecutor provideQueryExecutor(

@@ -52,7 +52,7 @@ public class InsertQueryHandler extends RegisterableQueryHandler<InsertQuery> {
         int freeRowOffset = Integer.BYTES + /*metadata*/ + freeRowId * bytesPerRow;
 
         buffer.position(freeRowOffset);
-        buffer.putInt(1); // TODO put bytes;
+        buffer.putInt((Integer) query.getValues()[0]); // TODO put bytes;
         freePage.setDirty(true);
         manager.flush();
         return OkQueryResult.INSTANCE;

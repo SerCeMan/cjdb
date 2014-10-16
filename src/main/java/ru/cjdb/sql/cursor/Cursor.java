@@ -1,10 +1,9 @@
 package ru.cjdb.sql.cursor;
 
-import javafx.scene.control.Tab;
-import ru.cjdb.scheme.MetainfoService;
-import ru.cjdb.scheme.dto.Table;
 import ru.cjdb.sql.result.Row;
-import ru.cjdb.storage.fs.*;
+import ru.cjdb.storage.fs.DiskManager;
+import ru.cjdb.storage.fs.DiskPage;
+import ru.cjdb.storage.fs.DiskPageUtils;
 
 import java.nio.ByteBuffer;
 import java.util.BitSet;
@@ -50,7 +49,7 @@ public class Cursor {
                         @Override
                         public Object getAt(int columnNumber) {
                             buffer.position(nextRowId * bytesPerRow + Integer.BYTES);
-                            return null;
+                            return buffer.getInt();
                         }
 
                         @Override
