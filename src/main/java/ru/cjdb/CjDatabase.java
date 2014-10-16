@@ -10,6 +10,7 @@ import ru.cjdb.sql.result.QueryResult;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.util.Scanner;
 
 /**
  * CjDB
@@ -33,12 +34,17 @@ public class CjDatabase {
     public static void main(String[] args) {
         ObjectGraph objectGraph = ObjectGraph.create(new CjDbModule());
         CjDatabase db = objectGraph.get(CjDatabase.class);
-        db.execPrint(Props.PATH);
+
+        Scanner scanner = new Scanner(System.in);
+        while (true) {
+            String line = scanner.nextLine();
+            db.execPrint(line);
+        }
     }
 
     public void execPrint(String sql) {
         Query query = queryParser.parseQuery(sql);
         QueryResult result = queryExecutor.execute(query);
-        printer.print(result);
+        //printer.print(result);
     }
 }
