@@ -18,12 +18,23 @@ public class ConfigStorage {
 
     @Inject
     public ConfigStorage() {
-        InputStream configFile = this.getClass().getResourceAsStream("db.properties");
+        InputStream configFile = getConfigFile();
         try {
             properties.load(configFile);
         } catch (IOException e) {
             throw new RuntimeException("Please provide db.properties file");
         }
+    }
+
+    /**
+     * Двойная проверка из-за проблем с тестами в CI
+     */
+    private InputStream getConfigFile() {
+        InputStream configFile = this.getClass().getResourceAsStream("db.properties");
+        if (configFile == null) {
+            configFile = ClassLoader.getSystemResourceAsStream("db.properties");
+        }
+        return configFile;
     }
 
     public String getRootPath() {
