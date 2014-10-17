@@ -1,6 +1,9 @@
 package ru.cjdb.scheme;
 
 import ru.cjdb.scheme.dto.Table;
+import ru.cjdb.scheme.types.Type;
+
+import java.util.List;
 
 /**
  * Сервис работы с метаинформацией
@@ -14,4 +17,6 @@ public interface MetainfoService {
     Table getTable(String name);
 
     int bytesPerRow(Table table);
+
+    List<Type> getColumnTypes(Table table);
 }

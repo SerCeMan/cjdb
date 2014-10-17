@@ -44,7 +44,38 @@ public class QueryExecutorImplTest {
         Assert.assertTrue(queryResult.isSuccessful());
         Assert.assertTrue(queryResult.hasResult());
 
-        Assert.assertEquals(queryResult.getResult().getRow(0).getAt(0), 2);
+        Assert.assertEquals(2, queryResult.getResult().getRow(0).getAt(0));
+    }
+
+
+
+    @Test
+    public void testCreateThenInsertThenSelectMultipleColumnsAndRows() {
+        String tableName = TestUtils.createRandomName();
+        CreateTableQuery createTableQuery = new CreateTableQuery(tableName,
+                asList(new RowDefinition("test1", Types.INT),
+                        new RowDefinition("test2", Types.INT)));
+        queryExecutor.execute(createTableQuery);
+
+        InsertQuery insertQuery1 = new InsertQuery(tableName, 1, 2);
+        queryExecutor.execute(insertQuery1);
+
+        InsertQuery insertQuery2 = new InsertQuery(tableName, 3, 4);
+        queryExecutor.execute(insertQuery2);
+
+        SelectQuery selectQuery = new SelectQuery(tableName, asList("test1", "test2"));
+        QueryResult queryResult = queryExecutor.execute(selectQuery);
+
+        Assert.assertTrue(queryResult.isSuccessful());
+        Assert.assertTrue(queryResult.hasResult());
+
+        Assert.assertEquals(queryResult.getResult().getRowCount(), 2);
+        Assert.assertEquals(queryResult.getResult().getRow(0).getColumnCount(), 2);
+
+        Assert.assertEquals(queryResult.getResult().getRow(0).getAt(0), 1);
+        Assert.assertEquals(queryResult.getResult().getRow(0).getAt(1), 2);
+        Assert.assertEquals(queryResult.getResult().getRow(1).getAt(0), 3);
+        Assert.assertEquals(queryResult.getResult().getRow(1).getAt(1), 4);
     }
 
     @Module(injects = QueryExecutorImplTest.class, includes = CjDbModule.class)

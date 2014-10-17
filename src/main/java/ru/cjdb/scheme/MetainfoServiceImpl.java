@@ -1,10 +1,13 @@
 package ru.cjdb.scheme;
 
+import ru.cjdb.scheme.dto.Column;
 import ru.cjdb.scheme.dto.Metainfo;
 import ru.cjdb.scheme.dto.Table;
 import ru.cjdb.scheme.storage.MetaStorage;
+import ru.cjdb.scheme.types.Type;
 
 import javax.inject.Singleton;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -41,5 +44,13 @@ public class MetainfoServiceImpl implements MetainfoService {
         return table.getColumns()
                 .stream()
                 .collect(Collectors.summingInt(column -> column.getType().bytes()));
+    }
+
+    @Override
+    public List<Type> getColumnTypes(Table table) {
+        return table.getColumns()
+                .stream()
+                .map(Column::getType)
+                .collect(Collectors.toList());
     }
 }

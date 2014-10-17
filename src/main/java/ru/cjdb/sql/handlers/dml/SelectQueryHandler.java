@@ -3,6 +3,7 @@ package ru.cjdb.sql.handlers.dml;
 import ru.cjdb.config.ConfigStorage;
 import ru.cjdb.scheme.MetainfoService;
 import ru.cjdb.scheme.dto.Table;
+import ru.cjdb.scheme.types.Type;
 import ru.cjdb.sql.cursor.Cursor;
 import ru.cjdb.sql.handlers.RegisterableQueryHandler;
 import ru.cjdb.sql.queries.dml.SelectQuery;
@@ -15,6 +16,7 @@ import ru.cjdb.storage.fs.DiskManagerFactory;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
+import java.util.List;
 
 /**
  * @author Sergey Tselovalnikov
@@ -41,7 +43,8 @@ public class SelectQueryHandler extends RegisterableQueryHandler<SelectQuery> {
         int bytesPerRow = metainfoService.bytesPerRow(table);
 
         DiskManager diskManager = diskManagerFactory.get(table.getName());
-        Cursor cursor = new Cursor(bytesPerRow, diskManager);
+        List<Type> types = metainfoService.getColumnTypes(table);
+        Cursor cursor = new Cursor(bytesPerRow, diskManager, types);
         DataSetImpl dataSet = new DataSetImpl();
         Row row;
         while ((row = cursor.nextRow()) != null) {

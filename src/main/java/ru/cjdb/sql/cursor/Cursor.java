@@ -1,5 +1,7 @@
 package ru.cjdb.sql.cursor;
 
+import ru.cjdb.scheme.types.Type;
+import ru.cjdb.scheme.types.Types;
 import ru.cjdb.sql.result.Row;
 import ru.cjdb.sql.result.impl.RowImpl;
 import ru.cjdb.storage.fs.DiskManager;
@@ -19,15 +21,17 @@ import java.util.List;
 public class Cursor {
     private final int bytesPerRow;
     private final DiskManager manager;
+    private final List<Type> types;
     private final int rowCount;
     private final int metaDataSize;
 
     private int nextRowId = 0;
     private int nextPageId = 0;
 
-    public Cursor(int bytesPerRow, DiskManager manager) {
+    public Cursor(int bytesPerRow, DiskManager manager, List<Type> types) {
         this.bytesPerRow = bytesPerRow;
         this.manager = manager;
+        this.types = types;
         metaDataSize = DiskPageUtils.metadataSize(bytesPerRow);
         rowCount = DiskPageUtils.calculateRowCount(bytesPerRow);
     }
@@ -37,17 +41,21 @@ public class Cursor {
             DiskPage page = manager.getPage(nextPageId);
 
             ByteBuffer buffer = ByteBuffer.wrap(page.getData());
-            buffer.position(Integer.BYTES); // пропускаем ссылку на другую страничку
-            byte[] bitmask = new byte[metaDataSize - Integer.BYTES];
-            buffer.get(bitmask);
-            BitSet freePagesBitSet = BitSet.valueOf(bitmask);
+            BitSet freePagesBitSet = DiskPageUtils.getPageBitMask(metaDataSize, buffer);
 
             for (; nextRowId < rowCount; nextRowId++) {
                 boolean busy = freePagesBitSet.get(nextRowId);
                 if (busy) {
                     buffer.position(nextRowId * bytesPerRow + metaDataSize);
+
+                    Object[] objects = new Object[types.size()];
+                    for (int i = 0; i < types.size(); i++) {
+                        Type type = types.get(i);
+                        objects[i] = type.read(buffer);
+                    }
+
                     nextRowId++;
-                    return new RowImpl(buffer.getInt());
+                    return new RowImpl(objects);
                 }
             }
             nextPageId++;

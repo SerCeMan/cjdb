@@ -3,6 +3,7 @@ package ru.cjdb.scheme.types.impl;
 import ru.cjdb.scheme.types.Type;
 
 import javax.xml.bind.annotation.XmlAttribute;
+import java.nio.ByteBuffer;
 
 /**
  * VARCHAR
@@ -34,6 +35,16 @@ public class VarcharType implements Type {
     @Override
     public int bytes() {
         return length;
+    }
+
+    @Override
+    public void write(ByteBuffer buffer, Object o) {
+
+    }
+
+    @Override
+    public Object read(ByteBuffer buffer) {
+        return null;
     }
 
     @Override

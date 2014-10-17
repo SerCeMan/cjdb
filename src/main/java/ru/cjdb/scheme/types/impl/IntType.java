@@ -1,6 +1,9 @@
 package ru.cjdb.scheme.types.impl;
 
+import com.google.common.base.Preconditions;
 import ru.cjdb.scheme.types.Type;
+
+import java.nio.ByteBuffer;
 
 /**
  * Целочисленный тип инт
@@ -16,6 +19,17 @@ public class IntType implements Type {
     @Override
     public int bytes() {
         return Integer.BYTES;
+    }
+
+    @Override
+    public void write(ByteBuffer buffer, Object o) {
+        Preconditions.checkArgument(o instanceof Integer, "Object should be Integer when type IntType");
+        buffer.putInt((Integer)o);
+    }
+
+    @Override
+    public Object read(ByteBuffer buffer) {
+        return buffer.getInt();
     }
 
     @Override
