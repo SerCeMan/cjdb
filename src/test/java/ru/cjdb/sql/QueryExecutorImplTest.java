@@ -30,14 +30,15 @@ public class QueryExecutorImplTest {
 
     @Test
     public void testCreateThenInsertThenSelect() {
-        CreateTableQuery createTableQuery = new CreateTableQuery(TestUtils.createRandomName(),
+        String tableName = TestUtils.createRandomName();
+        CreateTableQuery createTableQuery = new CreateTableQuery(tableName,
                 asList(new RowDefinition("test", Types.INT)));
         queryExecutor.execute(createTableQuery);
 
-        InsertQuery insertQuery = new InsertQuery("Test", 2);
+        InsertQuery insertQuery = new InsertQuery(tableName, 2);
         queryExecutor.execute(insertQuery);
 
-        SelectQuery selectQuery = new SelectQuery("Test", asList("test"));
+        SelectQuery selectQuery = new SelectQuery(tableName, asList("test"));
         QueryResult queryResult = queryExecutor.execute(selectQuery);
 
         Assert.assertTrue(queryResult.isSuccessful());
