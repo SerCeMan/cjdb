@@ -11,7 +11,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Sergey Tselovalnikov
  * @since 29.09.14
  */
-@Singleton
 public class QueryExecutorImpl implements QueryExecutor {
 
     private final ConcurrentHashMap<Class<? extends Query>, QueryHandler<? extends Query>> handlers = new ConcurrentHashMap<>();

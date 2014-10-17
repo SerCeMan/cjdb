@@ -6,16 +6,15 @@ import ru.cjdb.scheme.dto.Table;
 import ru.cjdb.sql.cursor.Cursor;
 import ru.cjdb.sql.handlers.RegisterableQueryHandler;
 import ru.cjdb.sql.queries.dml.SelectQuery;
-import ru.cjdb.sql.result.DataSet;
 import ru.cjdb.sql.result.QueryResult;
 import ru.cjdb.sql.result.Row;
+import ru.cjdb.sql.result.impl.DataSetImpl;
+import ru.cjdb.sql.result.impl.SelectQueryResult;
 import ru.cjdb.storage.fs.DiskManager;
-import ru.cjdb.storage.fs.DiskManagerImpl;
+import ru.cjdb.storage.fs.DiskManagerFactory;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
-import java.util.Arrays;
-import java.util.Collection;
 
 /**
  * @author Sergey Tselovalnikov
@@ -28,6 +27,8 @@ public class SelectQueryHandler extends RegisterableQueryHandler<SelectQuery> {
     MetainfoService metainfoService;
     @Inject
     ConfigStorage configStorage;
+    @Inject
+    DiskManagerFactory diskManagerFactory;
 
     @Inject
     public SelectQueryHandler() {
@@ -39,45 +40,13 @@ public class SelectQueryHandler extends RegisterableQueryHandler<SelectQuery> {
         Table table = metainfoService.getTable(query.getFrom());
         int bytesPerRow = metainfoService.bytesPerRow(table);
 
-        // TODO заполнять DataSet
-        DiskManager diskManager = new DiskManagerImpl(query.getFrom());
+        DiskManager diskManager = diskManagerFactory.get(table.getName());
         Cursor cursor = new Cursor(bytesPerRow, diskManager);
-        Row last[] = new Row[1];
+        DataSetImpl dataSet = new DataSetImpl();
         Row row;
         while ((row = cursor.nextRow()) != null) {
-            System.out.println(row.getAt(0));
-            last[0] = row;
+            dataSet.addRow(row);
         }
-        return new QueryResult() {
-            @Override
-            public boolean isSuccessful() {
-                return true;
-            }
-
-            @Override
-            public boolean hasResult() {
-                return true;
-            }
-
-            @Override
-            public DataSet getResult() {
-                return new DataSet() {
-                    @Override
-                    public int getRowCount() {
-                        return 1;
-                    }
-
-                    @Override
-                    public Row getRow(int number) {
-                        return last[0];
-                    }
-
-                    @Override
-                    public Collection<Row> getRows() {
-                        return Arrays.asList(last[0]);
-                    }
-                };
-            }
-        };
+        return new SelectQueryResult(dataSet);
     }
 }

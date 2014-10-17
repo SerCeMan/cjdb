@@ -5,11 +5,9 @@ import ru.cjdb.scheme.MetainfoService;
 import ru.cjdb.scheme.dto.Table;
 import ru.cjdb.sql.handlers.RegisterableQueryHandler;
 import ru.cjdb.sql.queries.dml.InsertQuery;
-import ru.cjdb.sql.result.OkQueryResult;
+import ru.cjdb.sql.result.impl.OkQueryResult;
 import ru.cjdb.sql.result.QueryResult;
-import ru.cjdb.storage.fs.DiskManagerImpl;
-import ru.cjdb.storage.fs.DiskPage;
-import ru.cjdb.storage.fs.DiskPageUtils;
+import ru.cjdb.storage.fs.*;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -27,6 +25,8 @@ public class InsertQueryHandler extends RegisterableQueryHandler<InsertQuery> {
     MetainfoService metainfoService;
     @Inject
     ConfigStorage configStorage;
+    @Inject
+    DiskManagerFactory diskManagerFactory;
 
     @Inject
     public InsertQueryHandler() {
@@ -37,35 +37,43 @@ public class InsertQueryHandler extends RegisterableQueryHandler<InsertQuery> {
     public QueryResult execute(InsertQuery query) {
         String tableName = query.getName();
 
-        DiskManagerImpl manager = new DiskManagerImpl(configStorage.getRootPath() + "/" + tableName);
+        DiskManager manager = diskManagerFactory.get(tableName);
         DiskPage freePage = manager.getFreePage();
 
         Table table = metainfoService.getTable(tableName);
-        int bytesPerRow = metainfoService.bytesPerRow(table);
-        int rowCount = DiskPageUtils.calculateRowCount(bytesPerRow);
 
         ByteBuffer buffer = ByteBuffer.wrap(freePage.getData());
-        buffer.position(Integer.BYTES); // пропускаем ссылку на другую страничку
+        int bytesPerRow = metainfoService.bytesPerRow(table);
 
-        int freeRowId = findFreeRowId(rowCount, buffer);
-
-        int freeRowOffset = Integer.BYTES + /*metadata*/ + freeRowId * bytesPerRow;
+        int rowCount = DiskPageUtils.calculateRowCount(bytesPerRow);
+        int metaDataSize = DiskPageUtils.metadataSize(bytesPerRow);
+        int freeRowId = findFreeRowId(rowCount, metaDataSize, buffer);
+        int freeRowOffset = metaDataSize + freeRowId * bytesPerRow;
 
         buffer.position(freeRowOffset);
         buffer.putInt((Integer) query.getValues()[0]); // TODO put bytes;
         freePage.setDirty(true);
+
         manager.flush();
         return OkQueryResult.INSTANCE;
     }
 
-    private int findFreeRowId(int rowCount, ByteBuffer buffer) {
+    private int findFreeRowId(int rowCount, int metaDataSize, ByteBuffer buffer) {
         int freeRowId = -1;
-        BitSet freePagesBitSet = BitSet.valueOf(buffer);
+        buffer.position(Integer.BYTES); // пропускаем ссылку на другую страничку
+        byte[] bitmask = new byte[metaDataSize - Integer.BYTES];
+        buffer.get(bitmask);
+        BitSet freePagesBitSet = BitSet.valueOf(bitmask);
         for (int i = 0; i < rowCount; i++) {
             boolean busy = freePagesBitSet.get(i);
             if (!busy) {
                 // нашли свободную страничку
                 freeRowId = i;
+                // Пишем ее как занятую
+                freePagesBitSet.set(freeRowId, true);
+                buffer.position(Integer.BYTES);
+                buffer.put(freePagesBitSet.toByteArray());
+
                 break;
             }
         }

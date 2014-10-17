@@ -7,6 +7,8 @@ import ru.cjdb.sql.handlers.ddl.CreateTableQueryHandler;
 import ru.cjdb.sql.handlers.dml.InsertQueryHandler;
 import ru.cjdb.sql.handlers.dml.SelectQueryHandler;
 
+import javax.inject.Singleton;
+
 /**
  * TODO Куча бойлерплейт кода, надо что-то придумать с аннотациями!
  *
@@ -16,6 +18,7 @@ import ru.cjdb.sql.handlers.dml.SelectQueryHandler;
 @Module(injects = QueryExecutor.class, includes = {MetaStorageModule.class})
 public class QueryExecutorModule {
     @Provides
+    @Singleton
     public QueryExecutor provideQueryExecutor(
             InsertQueryHandler insertQueryHandler,
             SelectQueryHandler selectQueryHandler,

@@ -5,7 +5,7 @@ import ru.cjdb.scheme.dto.Column;
 import ru.cjdb.scheme.dto.Table;
 import ru.cjdb.sql.handlers.RegisterableQueryHandler;
 import ru.cjdb.sql.queries.ddl.CreateTableQuery;
-import ru.cjdb.sql.result.OkQueryResult;
+import ru.cjdb.sql.result.impl.OkQueryResult;
 import ru.cjdb.sql.result.QueryResult;
 
 import javax.inject.Inject;

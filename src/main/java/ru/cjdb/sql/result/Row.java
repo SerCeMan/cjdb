@@ -1,7 +1,5 @@
 package ru.cjdb.sql.result;
 
-import java.util.List;
-
 /**
  * Строчка с результатом
  *
@@ -13,5 +11,5 @@ public interface Row {
 
     Object getAt(int columnNumber);
 
-    List<Object> values();
+    Object[] values();
 }

@@ -10,6 +10,7 @@ import ru.cjdb.sql.queries.Query;
 import ru.cjdb.sql.queries.dml.SelectQuery;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
@@ -39,6 +40,7 @@ public class QueryParserImplTest {
     @Module(injects = QueryParserImplTest.class, includes = ConfigModule.class)
     public static final class QueryParserTestModule {
         @Provides
+        @Singleton
         public QueryParser provideStorage() {
             return new QueryParserImpl();
         }

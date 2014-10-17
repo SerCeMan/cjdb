@@ -1,7 +1,5 @@
 package ru.cjdb.storage.fs;
 
-import ru.cjdb.storage.fs.DiskPage;
-
 /**
  * @author Sergey Tselovalnikov
  * @since 16.10.14
@@ -12,4 +10,9 @@ public interface DiskManager {
     int pageCount();
 
     DiskPage getFreePage();
+
+    /**
+     * TODO видимо убрать, когда все ок будет
+     */
+    void flush();
 }

@@ -1,4 +1,7 @@
-package ru.cjdb.sql.result;
+package ru.cjdb.sql.result.impl;
+
+import ru.cjdb.sql.result.DataSet;
+import ru.cjdb.sql.result.QueryResult;
 
 /**
  * @author Sergey Tselovalnikov
@@ -19,6 +22,11 @@ public final class OkQueryResult implements QueryResult {
     @Override
     public boolean hasResult() {
         return false;
+    }
+
+    @Override
+    public int rowsAffected() {
+        return 0;
     }
 
     @Override

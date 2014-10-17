@@ -12,7 +12,6 @@ import java.io.*;
  * @author Sergey Tselovalnikov
  * @since 28.09.14
  */
-@Singleton
 public class MetaStorageImpl implements MetaStorage {
     static final String METAINFO_FILE = "metainfo.xml";
 

@@ -7,7 +7,6 @@ import javax.inject.Singleton;
 /**
  * Created by flire on 17.10.14.
  */
-@Singleton
 public class ResultPrinterImpl implements ResultPrinter {
     @Override
     public void print(QueryResult result) {

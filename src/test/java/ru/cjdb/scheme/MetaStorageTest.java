@@ -16,6 +16,7 @@ import ru.cjdb.scheme.storage.MetaStorageImpl;
 import ru.cjdb.scheme.types.Types;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.io.File;
 
 public class MetaStorageTest {
@@ -55,6 +56,7 @@ public class MetaStorageTest {
     @Module(injects = MetaStorageTest.class, includes = ConfigModule.class)
     public static final class MetaStorageTestModule {
         @Provides
+        @Singleton
         public MetaStorage provideStorage(ConfigStorage configStorage) {
             return new MetaStorageImpl(configStorage);
         }

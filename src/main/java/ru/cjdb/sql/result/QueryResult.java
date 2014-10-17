@@ -11,5 +11,7 @@ public interface QueryResult {
 
     boolean hasResult();
 
+    int rowsAffected();
+
     DataSet getResult();
 }

@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
  * @author Sergey Tselovalnikov
  * @since 17.10.14
  */
-@Singleton
 public class MetainfoServiceImpl implements MetainfoService {
 
     private MetaStorage metaStorage;

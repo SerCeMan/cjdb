@@ -12,7 +12,6 @@ import static java.util.Arrays.asList;
  * @author Sergey Tselovalnikov
  * @since 05.10.14
  */
-@Singleton
 public class QueryParserImpl implements QueryParser {
 
     @Override

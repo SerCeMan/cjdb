@@ -44,7 +44,11 @@ public class ConfigStorage {
     }
 
     public String getRootPath() {
-        return properties.getProperty(Props.PATH);
+        String path = properties.getProperty(Props.PATH);
+        if (!path.endsWith("/")) {
+            path += "/";
+        }
+        return path;
     }
 
     public String getProperty(String key) {

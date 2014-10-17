@@ -1,6 +1,7 @@
 package ru.cjdb.sql.cursor;
 
 import ru.cjdb.sql.result.Row;
+import ru.cjdb.sql.result.impl.RowImpl;
 import ru.cjdb.storage.fs.DiskManager;
 import ru.cjdb.storage.fs.DiskPage;
 import ru.cjdb.storage.fs.DiskPageUtils;
@@ -19,6 +20,7 @@ public class Cursor {
     private final int bytesPerRow;
     private final DiskManager manager;
     private final int rowCount;
+    private final int metaDataSize;
 
     private int nextRowId = 0;
     private int nextPageId = 0;
@@ -26,6 +28,7 @@ public class Cursor {
     public Cursor(int bytesPerRow, DiskManager manager) {
         this.bytesPerRow = bytesPerRow;
         this.manager = manager;
+        metaDataSize = DiskPageUtils.metadataSize(bytesPerRow);
         rowCount = DiskPageUtils.calculateRowCount(bytesPerRow);
     }
 
@@ -35,28 +38,16 @@ public class Cursor {
 
             ByteBuffer buffer = ByteBuffer.wrap(page.getData());
             buffer.position(Integer.BYTES); // пропускаем ссылку на другую страничку
+            byte[] bitmask = new byte[metaDataSize - Integer.BYTES];
+            buffer.get(bitmask);
+            BitSet freePagesBitSet = BitSet.valueOf(bitmask);
 
-            BitSet freePagesBitSet = BitSet.valueOf(buffer);
             for (; nextRowId < rowCount; nextRowId++) {
                 boolean busy = freePagesBitSet.get(nextRowId);
                 if (busy) {
-                    return new Row() {
-                        @Override
-                        public int getColumnCount() {
-                            return 1;
-                        }
-
-                        @Override
-                        public Object getAt(int columnNumber) {
-                            buffer.position(nextRowId * bytesPerRow + Integer.BYTES);
-                            return buffer.getInt();
-                        }
-
-                        @Override
-                        public List<Object> values() {
-                            return null;
-                        }
-                    };
+                    buffer.position(nextRowId * bytesPerRow + metaDataSize);
+                    nextRowId++;
+                    return new RowImpl(buffer.getInt());
                 }
             }
             nextPageId++;

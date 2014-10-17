@@ -20,7 +20,7 @@ import static ru.cjdb.storage.fs.Constants.PAGE_SIZE;
  * @author Sergey Tselovalnikov
  * @since 05.10.14
  */
-public class DiskManagerImpl implements DiskManager {
+class DiskManagerImpl implements DiskManager {
 
     private static final int EXPAND_PAGE_COUNT = 4; // сколько страниц будет считано с диска при нехватке
 
@@ -152,11 +152,10 @@ public class DiskManagerImpl implements DiskManager {
             previousPage = page;
             diskCache.put(page.getId(), page);
         }
-        counter.addAndGet(EXPAND_PAGE_COUNT);
     }
 
     /**
-     * Увеличить файл на нужное количество страниц
+     * Увеличить файл на нужное количество страQниц
      */
     private void expandBuffer(int expandPageCount) {
         int prevPosition = byteBuffer.position();
