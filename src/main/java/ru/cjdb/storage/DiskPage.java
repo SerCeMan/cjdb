@@ -31,6 +31,7 @@ public class DiskPage {
     public void setNextFreePage(int nextFreePage) {
         ByteBuffer.wrap(data).putInt(nextFreePage);
         this.nextFreePage = nextFreePage;
+        setDirty(true);
     }
 
     public int getId() {

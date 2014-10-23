@@ -3,11 +3,11 @@ package ru.cjdb.storage.fs;
 import com.google.common.base.Preconditions;
 import ru.cjdb.storage.Constants;
 import ru.cjdb.storage.DiskPage;
+import ru.cjdb.storage.DiskPageUtils;
 import ru.cjdb.storage.PageCache;
 import ru.cjdb.utils.FileUtils;
 
 import java.nio.MappedByteBuffer;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.nio.channels.FileChannel.MapMode;
@@ -26,14 +26,16 @@ class DiskManagerImpl implements DiskManager {
     private final AtomicInteger counter = new AtomicInteger(); // page counter
 
     private final String tableName;
+    private final int bytesPerRow;
     private final PageCache pageCache;
     private final String filePath; //Путь до файла БД
-    private Integer freePageId = null;
+    private int freePageId = -1;
     private MappedByteBuffer byteBuffer;
 
-    public DiskManagerImpl(String filePath, String tableName, PageCache pageCache) {
+    public DiskManagerImpl(String filePath, String tableName, int bytesPerRow, PageCache pageCache) {
         this.filePath = filePath;
         this.tableName = tableName;
+        this.bytesPerRow = bytesPerRow;
         this.pageCache = pageCache;
         init();
     }
@@ -74,7 +76,7 @@ class DiskManagerImpl implements DiskManager {
      * Возвратить свободную для записи страницу
      */
     public DiskPage getFreePage() {
-        while (freePageId != null) {
+        while (freePageId != -1) {
             DiskPage page = getPage(freePageId);
             if (hasFreeRows(page)) {
                 return page;
@@ -88,7 +90,7 @@ class DiskManagerImpl implements DiskManager {
 
     // TODO перенести куда-нибудь
     private boolean hasFreeRows(DiskPage page) {
-        return true;
+        return DiskPageUtils.hasFreeRows(page, bytesPerRow);
     }
 
     /**
@@ -131,7 +133,8 @@ class DiskManagerImpl implements DiskManager {
         for (int i = 0; i < EXPAND_PAGE_COUNT; i++) {
             int pageId = counter.getAndIncrement();
             DiskPage page = loadPageFromDisk(pageId);
-            if (freePageId == null) {
+            page.setNextFreePage(-1);
+            if (freePageId == -1) {
                 freePageId = page.getId();
             } else {
                 assert previousPage != null;

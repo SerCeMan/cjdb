@@ -16,7 +16,7 @@ public class DiskPageUtils {
     public static int metadataSize(int bytesPerRow) {
         int rowCount = calculateRowCount(bytesPerRow);
         int nextPagePointer = Integer.BYTES;
-        int bitMaskBytes = (int) Math.ceil(rowCount / (double)Byte.SIZE);
+        int bitMaskBytes = (int) Math.ceil(rowCount / (double) Byte.SIZE);
         return nextPagePointer + bitMaskBytes;
     }
 
@@ -30,5 +30,17 @@ public class DiskPageUtils {
         byte[] bitmask = new byte[metaDataSize - Integer.BYTES];
         buffer.get(bitmask);
         return BitSet.valueOf(bitmask);
+    }
+
+    public static boolean hasFreeRows(DiskPage page, int bytesPerRow) {
+        int metaDataSize = DiskPageUtils.metadataSize(bytesPerRow);
+        BitSet pageBitMask = getPageBitMask(metaDataSize, ByteBuffer.wrap(page.getData()));
+        for (int i = 0; i < metaDataSize; i++) {
+            boolean free = !pageBitMask.get(i);
+            if (free) {
+                return true;
+            }
+        }
+        return false;
     }
 }

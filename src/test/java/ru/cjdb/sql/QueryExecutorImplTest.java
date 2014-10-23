@@ -25,7 +25,7 @@ public class QueryExecutorImplTest {
 
     @Before
     public void setup() {
-        ObjectGraph.create(new QueryExecutorImplTestModule ()).inject(this);
+        ObjectGraph.create(new QueryExecutorImplTestModule()).inject(this);
     }
 
     @Test
@@ -47,6 +47,30 @@ public class QueryExecutorImplTest {
         Assert.assertEquals(2, queryResult.getResult().getRow(0).getAt(0));
     }
 
+    @Test
+    public void testCreateThenInsertThenSelectMoreThanPage() {
+        String tableName = TestUtils.createRandomName();
+        CreateTableQuery createTableQuery = new CreateTableQuery(tableName,
+                asList(new RowDefinition("test", Types.INT)));
+        queryExecutor.execute(createTableQuery);
+
+        int count = 4096;
+        for (int i = 0; i < count; i++) {
+            InsertQuery insertQuery = new InsertQuery(tableName, i);
+            queryExecutor.execute(insertQuery);
+        }
+
+
+        SelectQuery selectQuery = new SelectQuery(tableName, asList("test"));
+        QueryResult queryResult = queryExecutor.execute(selectQuery);
+
+        Assert.assertTrue(queryResult.isSuccessful());
+        Assert.assertTrue(queryResult.hasResult());
+        Assert.assertEquals(count, queryResult.getResult().getRowCount());
+        for (int i = 0; i < count; i++) {
+            Assert.assertEquals(i, queryResult.getResult().getRow(i).getAt(0));
+        }
+    }
 
 
     @Test
