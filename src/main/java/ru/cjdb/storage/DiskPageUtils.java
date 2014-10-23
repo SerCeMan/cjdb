@@ -1,4 +1,4 @@
-package ru.cjdb.storage.fs;
+package ru.cjdb.storage;
 
 import java.nio.ByteBuffer;
 import java.util.BitSet;

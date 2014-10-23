@@ -1,4 +1,4 @@
-package ru.cjdb.storage.fs;
+package ru.cjdb.storage;
 
 /**
  * @author Sergey Tselovalnikov

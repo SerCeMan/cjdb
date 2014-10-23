@@ -1,7 +1,7 @@
 package ru.cjdb.storage.fs;
 
-import jdk.nashorn.internal.runtime.regexp.joni.Config;
 import ru.cjdb.config.ConfigStorage;
+import ru.cjdb.storage.PageCache;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -22,6 +22,8 @@ public class DiskManagerFactory {
 
     @Inject
     ConfigStorage configStorage;
+    @Inject
+    PageCache pageCache;
 
     public DiskManager get(String tableName) {
         DiskManager manager = managers.get(tableName);
@@ -29,7 +31,7 @@ public class DiskManagerFactory {
             synchronized (this) {
                 manager = managers.get(tableName);
                 if (manager == null) {
-                    manager = new DiskManagerImpl(configStorage.getRootPath() + tableName);
+                    manager = new DiskManagerImpl(configStorage.getRootPath() + tableName, tableName, pageCache);
                     managers.put(tableName, manager);
                     return manager;
                 }

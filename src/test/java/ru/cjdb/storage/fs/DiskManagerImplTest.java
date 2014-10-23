@@ -6,6 +6,8 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import ru.cjdb.config.ConfigStorage;
+import ru.cjdb.storage.DiskPage;
+import ru.cjdb.storage.PageCache;
 import ru.cjdb.testutils.TestUtils;
 
 import javax.inject.Inject;
@@ -18,6 +20,8 @@ public class DiskManagerImplTest {
 
     @Inject
     ConfigStorage configStorage;
+    @Inject
+    PageCache pageCache;
 
     @Before
     public void init() {
@@ -34,13 +38,15 @@ public class DiskManagerImplTest {
 
     @Test
     public void testPagesEmpty() {
-        DiskManagerImpl manager = new DiskManagerImpl(configStorage.getRootPath() + TestUtils.createRandomName());
+        String tableName = TestUtils.createRandomName();
+        DiskManagerImpl manager = new DiskManagerImpl(configStorage.getRootPath() + tableName, tableName, pageCache);
         Assert.assertEquals(0, manager.pageCount());
     }
 
     @Test
     public void testExpand() {
-        DiskManagerImpl manager = new DiskManagerImpl(configStorage.getRootPath() + TestUtils.createRandomName());
+        String tableName = TestUtils.createRandomName();
+        DiskManagerImpl manager = new DiskManagerImpl(configStorage.getRootPath() + tableName, tableName, pageCache);
         DiskPage page = manager.getFreePage();
         Assert.assertEquals(page.getId(), 0);
         Assert.assertTrue(manager.pageCount() > 0);
@@ -48,7 +54,7 @@ public class DiskManagerImplTest {
 
     @Test
     public void testFlush() {
-        DiskManagerImpl manager = new DiskManagerImpl(getTestDbFilePath());
+        DiskManagerImpl manager = new DiskManagerImpl(getTestDbFilePath(), TEST_DB_PATH, pageCache);
 
         // Пишем Hello В страничку
         DiskPage page = manager.getFreePage();
@@ -61,7 +67,7 @@ public class DiskManagerImplTest {
         manager.flush();
 
         // Проверяем, что кэш чистый
-        Assert.assertTrue(manager.diskCache.asMap().isEmpty());
+        Assert.assertTrue(pageCache.values().isEmpty());
 
         DiskPage page2 = manager.getPage(page.getId());
 
@@ -77,13 +83,13 @@ public class DiskManagerImplTest {
 
     @Test
     public void testFileCreated() {
-        DiskManagerImpl manager = new DiskManagerImpl(getTestDbFilePath());
+        DiskManagerImpl manager = new DiskManagerImpl(getTestDbFilePath(), TEST_DB_PATH, pageCache);
         Assert.assertTrue(new File(getTestDbFilePath()).exists());
     }
 
     @Test
     public void getFreePageTest() {
-        DiskManagerImpl manager = new DiskManagerImpl(getTestDbFilePath());
+        DiskManagerImpl manager = new DiskManagerImpl(getTestDbFilePath(), TEST_DB_PATH, pageCache);
         DiskPage page = manager.getFreePage();
         Assert.assertNotNull(page);
     }

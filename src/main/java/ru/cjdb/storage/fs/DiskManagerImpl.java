@@ -1,10 +1,9 @@
 package ru.cjdb.storage.fs;
 
 import com.google.common.base.Preconditions;
-import com.google.common.cache.Cache;
-import com.google.common.cache.CacheBuilder;
-import com.google.common.cache.RemovalListener;
-import com.google.common.cache.RemovalNotification;
+import ru.cjdb.storage.Constants;
+import ru.cjdb.storage.DiskPage;
+import ru.cjdb.storage.PageCache;
 import ru.cjdb.utils.FileUtils;
 
 import java.nio.MappedByteBuffer;
@@ -12,7 +11,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.nio.channels.FileChannel.MapMode;
-import static ru.cjdb.storage.fs.Constants.PAGE_SIZE;
+import static ru.cjdb.storage.Constants.PAGE_SIZE;
 
 /**
  * Дисковый менеджер, отвечает за работу с файлом конкретной таблицы
@@ -25,23 +24,17 @@ class DiskManagerImpl implements DiskManager {
     private static final int EXPAND_PAGE_COUNT = 4; // сколько страниц будет считано с диска при нехватке
 
     private final AtomicInteger counter = new AtomicInteger(); // page counter
-    final Cache<Integer, DiskPage> diskCache = CacheBuilder.<Integer, DiskPage>newBuilder()
-            .maximumSize(1000)
-            .removalListener(new RemovalListener<Integer, DiskPage>() {
-                @Override
-                public void onRemoval(RemovalNotification<Integer, DiskPage> notification) {
-                    DiskPage page = notification.getValue();
-                    flush(page);
-                }
-            })
-            .build();
 
+    private final String tableName;
+    private final PageCache pageCache;
     private final String filePath; //Путь до файла БД
     private Integer freePageId = null;
     private MappedByteBuffer byteBuffer;
 
-    public DiskManagerImpl(String filePath) {
+    public DiskManagerImpl(String filePath, String tableName, PageCache pageCache) {
         this.filePath = filePath;
+        this.tableName = tableName;
+        this.pageCache = pageCache;
         init();
     }
 
@@ -69,11 +62,7 @@ class DiskManagerImpl implements DiskManager {
     @Override
     public DiskPage getPage(int id) {
         Preconditions.checkArgument(id >= 0 && id < pageCount(), "Page number should been be between zero and pageCount");
-        try {
-            return diskCache.get(id, () -> loadPageFromDisk(id));
-        } catch (ExecutionException e) {
-            throw new RuntimeException("Error while loading page from disk ", e);
-        }
+        return pageCache.get(tableName, id, () -> loadPageFromDisk(id));
     }
 
     @Override
@@ -106,22 +95,21 @@ class DiskManagerImpl implements DiskManager {
      * Сбрасывает дисковый кэш на диск
      */
     public void flush() {
-        diskCache.asMap()
-                .values()
+        pageCache.values()
                 .stream()
                 .unordered()
                 .filter(DiskPage::isDirty)
                 .forEach(this::flush);
         byteBuffer.rewind();
         byteBuffer.putInt(counter.intValue());
-        diskCache.invalidateAll();
+        pageCache.clear();
     }
 
     /**
      * Сбрасывает конкетную страничку на диск
      */
-    private void flush(DiskPage page) {
-        if(page.isDirty()) {
+    public void flush(DiskPage page) {
+        if (page.isDirty()) {
             byteBuffer.position(calculateOffset(page.getId()));
             byteBuffer.put(page.getData());
         }
@@ -150,7 +138,7 @@ class DiskManagerImpl implements DiskManager {
                 previousPage.setNextFreePage(page.getId());
             }
             previousPage = page;
-            diskCache.put(page.getId(), page);
+            pageCache.put(tableName, page.getId(), page);
         }
     }
 

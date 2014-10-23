@@ -1,1 +1,2 @@
 db.path=/home/serce/tmp/db/
+db.cache=512 #should at least 1

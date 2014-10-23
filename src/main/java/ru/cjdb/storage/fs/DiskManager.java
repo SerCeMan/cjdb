@@ -1,5 +1,7 @@
 package ru.cjdb.storage.fs;
 
+import ru.cjdb.storage.DiskPage;
+
 /**
  * @author Sergey Tselovalnikov
  * @since 16.10.14
@@ -15,4 +17,6 @@ public interface DiskManager {
      * TODO видимо убрать, когда все ок будет
      */
     void flush();
+
+    void flush(DiskPage page);
 }

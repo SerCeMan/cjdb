@@ -1,1 +1,2 @@
 db.path=/tmp/db/
+db.cache=512

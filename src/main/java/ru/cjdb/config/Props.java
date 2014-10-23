@@ -9,6 +9,7 @@ package ru.cjdb.config;
 public final class Props {
 
     public static String PATH = "db.path";
+    public static String CACHE_SIZE = "db.cache";
 
     private Props() {
     }

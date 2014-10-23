@@ -8,6 +8,8 @@ import ru.cjdb.sql.handlers.RegisterableQueryHandler;
 import ru.cjdb.sql.queries.dml.InsertQuery;
 import ru.cjdb.sql.result.impl.OkQueryResult;
 import ru.cjdb.sql.result.QueryResult;
+import ru.cjdb.storage.DiskPage;
+import ru.cjdb.storage.DiskPageUtils;
 import ru.cjdb.storage.fs.*;
 
 import javax.inject.Inject;
