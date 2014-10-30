@@ -1,6 +1,6 @@
 package ru.cjdb.sql.result.impl;
 
-import ru.cjdb.sql.result.DataSet;
+import ru.cjdb.sql.cursor.Cursor;
 import ru.cjdb.sql.result.QueryResult;
 
 
@@ -10,10 +10,10 @@ import ru.cjdb.sql.result.QueryResult;
  */
 public class SelectQueryResult implements QueryResult {
 
-    private DataSet dataSet;
+    private Cursor cursor;
 
-    public SelectQueryResult(DataSet dataSet) {
-        this.dataSet = dataSet;
+    public SelectQueryResult(Cursor cursor) {
+        this.cursor = cursor;
     }
 
     @Override
@@ -32,7 +32,7 @@ public class SelectQueryResult implements QueryResult {
     }
 
     @Override
-    public DataSet getResult() {
-        return dataSet;
+    public Cursor getCursor() {
+        return cursor;
     }
 }

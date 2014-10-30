@@ -1,6 +1,6 @@
 package ru.cjdb.sql.result.impl;
 
-import ru.cjdb.sql.result.DataSet;
+import ru.cjdb.sql.cursor.Cursor;
 import ru.cjdb.sql.result.QueryResult;
 
 /**
@@ -30,7 +30,7 @@ public final class OkQueryResult implements QueryResult {
     }
 
     @Override
-    public DataSet getResult() {
+    public Cursor getCursor() {
         return null;
     }
 }

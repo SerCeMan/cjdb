@@ -9,7 +9,6 @@ import ru.cjdb.sql.handlers.RegisterableQueryHandler;
 import ru.cjdb.sql.queries.dml.SelectQuery;
 import ru.cjdb.sql.result.QueryResult;
 import ru.cjdb.sql.result.Row;
-import ru.cjdb.sql.result.impl.DataSetImpl;
 import ru.cjdb.sql.result.impl.SelectQueryResult;
 import ru.cjdb.storage.fs.DiskManager;
 import ru.cjdb.storage.fs.DiskManagerFactory;
@@ -45,11 +44,6 @@ public class SelectQueryHandler extends RegisterableQueryHandler<SelectQuery> {
         DiskManager diskManager = diskManagerFactory.get(table.getName());
         List<Type> types = metainfoService.getColumnTypes(table);
         Cursor cursor = new Cursor(bytesPerRow, diskManager, types);
-        DataSetImpl dataSet = new DataSetImpl();
-        Row row;
-        while ((row = cursor.nextRow()) != null) {
-            dataSet.addRow(row);
-        }
-        return new SelectQueryResult(dataSet);
+        return new SelectQueryResult(cursor);
     }
 }

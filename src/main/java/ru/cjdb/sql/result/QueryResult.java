@@ -1,5 +1,7 @@
 package ru.cjdb.sql.result;
 
+import ru.cjdb.sql.cursor.Cursor;
+
 /**
  * Результат выполнения запроса
  *
@@ -13,5 +15,5 @@ public interface QueryResult {
 
     int rowsAffected();
 
-    DataSet getResult();
+    Cursor getCursor();
 }
