@@ -11,6 +11,7 @@ import ru.cjdb.sql.queries.ddl.CreateTableQuery;
 import ru.cjdb.sql.queries.dml.InsertQuery;
 import ru.cjdb.sql.queries.dml.SelectQuery;
 import ru.cjdb.sql.result.QueryResult;
+import ru.cjdb.sql.result.Row;
 import ru.cjdb.testutils.TestUtils;
 
 import javax.inject.Inject;
@@ -44,7 +45,7 @@ public class QueryExecutorImplTest {
         Assert.assertTrue(queryResult.isSuccessful());
         Assert.assertTrue(queryResult.hasResult());
 
-        Assert.assertEquals(2, queryResult.getResult().getRow(0).getAt(0));
+        Assert.assertEquals(2, queryResult.getCursor().nextRow().getAt(0));
     }
 
     @Test
@@ -54,9 +55,11 @@ public class QueryExecutorImplTest {
                 asList(new RowDefinition("test", Types.INT)));
         queryExecutor.execute(createTableQuery);
 
-        int count = 4096;
+        int count = 4096 * 4;
+        Object[] arr = {0};
+        InsertQuery insertQuery = new InsertQuery(tableName, arr);
         for (int i = 0; i < count; i++) {
-            InsertQuery insertQuery = new InsertQuery(tableName, i);
+            arr[0] = i;
             queryExecutor.execute(insertQuery);
         }
 
@@ -66,9 +69,8 @@ public class QueryExecutorImplTest {
 
         Assert.assertTrue(queryResult.isSuccessful());
         Assert.assertTrue(queryResult.hasResult());
-        Assert.assertEquals(count, queryResult.getResult().getRowCount());
         for (int i = 0; i < count; i++) {
-            Assert.assertEquals(i, queryResult.getResult().getRow(i).getAt(0));
+            Assert.assertEquals(i, queryResult.getCursor().nextRow().getAt(0));
         }
     }
 
@@ -93,13 +95,16 @@ public class QueryExecutorImplTest {
         Assert.assertTrue(queryResult.isSuccessful());
         Assert.assertTrue(queryResult.hasResult());
 
-        Assert.assertEquals(queryResult.getResult().getRowCount(), 2);
-        Assert.assertEquals(queryResult.getResult().getRow(0).getColumnCount(), 2);
+//        Assert.assertEquals(queryResult.getCursor().getRowCount(), 2);
+        Row row1 = queryResult.getCursor().nextRow();
+        Assert.assertEquals(row1.getColumnCount(), 2);
 
-        Assert.assertEquals(queryResult.getResult().getRow(0).getAt(0), 1);
-        Assert.assertEquals(queryResult.getResult().getRow(0).getAt(1), 2);
-        Assert.assertEquals(queryResult.getResult().getRow(1).getAt(0), 3);
-        Assert.assertEquals(queryResult.getResult().getRow(1).getAt(1), 4);
+        Assert.assertEquals(row1.getAt(0), 1);
+        Assert.assertEquals(row1.getAt(1), 2);
+
+        Row row2 = queryResult.getCursor().nextRow();
+        Assert.assertEquals(row2.getAt(0), 3);
+        Assert.assertEquals(row2.getAt(1), 4);
     }
 
     @Module(injects = QueryExecutorImplTest.class, includes = CjDbModule.class)
