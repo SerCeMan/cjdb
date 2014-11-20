@@ -1,12 +1,13 @@
 package ru.cjdb.printer;
 
-import com.sun.deploy.util.StringUtils;
+import com.google.common.base.Joiner;
 import ru.cjdb.scheme.types.Type;
 import ru.cjdb.sql.cursor.Cursor;
 import ru.cjdb.sql.result.QueryResult;
 import ru.cjdb.sql.result.Row;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 /** ResultPrinter implementation for INT
  * Created by flire on 17.10.14.
@@ -37,6 +38,6 @@ public class ResultPrinterImpl implements ResultPrinter {
                 formats.add("%10d");
             }
         }
-        return StringUtils.join(formats, " ");
+        return Joiner.on(" ").join(formats);
     }
 }
