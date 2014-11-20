@@ -18,7 +18,7 @@ import ru.cjdb.testutils.TestUtils;
 import javax.inject.Inject;
 
 import static java.util.Arrays.asList;
-import static ru.cjdb.sql.queries.ddl.CreateTableQuery.RowDefinition;
+import static ru.cjdb.sql.queries.ddl.CreateTableQuery.ColumnDefinition;
 
 public class QueryExecutorImplTest {
 
@@ -34,7 +34,7 @@ public class QueryExecutorImplTest {
     public void testCreateThenInsertThenSelect() {
         String tableName = TestUtils.createRandomName();
         CreateTableQuery createTableQuery = new CreateTableQuery(tableName,
-                asList(new RowDefinition("test", Types.INT)));
+                asList(new ColumnDefinition("test", Types.INT)));
         queryExecutor.execute(createTableQuery);
 
         InsertQuery insertQuery = new InsertQuery(tableName, 2);
@@ -53,7 +53,7 @@ public class QueryExecutorImplTest {
     public void testCreateThenInsertThenSelectMoreThanPage() {
         String tableName = TestUtils.createRandomName();
         CreateTableQuery createTableQuery = new CreateTableQuery(tableName,
-                asList(new RowDefinition("test", Types.INT)));
+                asList(new ColumnDefinition("test", Types.INT)));
         queryExecutor.execute(createTableQuery);
 
         int count = 4096 * 4;
@@ -160,8 +160,8 @@ public class QueryExecutorImplTest {
     public void testCreateThenInsertThenSelectMultipleColumnsAndRows() {
         String tableName = TestUtils.createRandomName();
         CreateTableQuery createTableQuery = new CreateTableQuery(tableName,
-                asList(new RowDefinition("test1", Types.INT),
-                        new RowDefinition("test2", Types.INT)));
+                asList(new ColumnDefinition("test1", Types.INT),
+                        new ColumnDefinition("test2", Types.INT)));
         queryExecutor.execute(createTableQuery);
 
         InsertQuery insertQuery1 = new InsertQuery(tableName, 1, 2);

@@ -11,9 +11,9 @@ import java.util.List;
  */
 public class CreateTableQuery implements Query {
     private final String name;
-    private final List<RowDefinition> rows;
+    private final List<ColumnDefinition> rows;
 
-    public CreateTableQuery(String name, List<RowDefinition> rows) {
+    public CreateTableQuery(String name, List<ColumnDefinition> rows) {
         this.name = name;
         this.rows = rows;
     }
@@ -22,15 +22,15 @@ public class CreateTableQuery implements Query {
         return name;
     }
 
-    public List<RowDefinition> getRows() {
+    public List<ColumnDefinition> getRows() {
         return rows;
     }
 
-    public static final class RowDefinition {
+    public static final class ColumnDefinition {
         private final String name;
         private final Type type;
 
-        public RowDefinition(String name, Type type) {
+        public ColumnDefinition(String name, Type type) {
             this.name = name;
             this.type = type;
         }

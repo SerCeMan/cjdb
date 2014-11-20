@@ -1,5 +1,7 @@
 package ru.cjdb.sql.queries.dml;
 
+import ru.cjdb.sql.expressions.BooleanExpression;
+import ru.cjdb.sql.expressions.conditions.ConditionOrAnd;
 import ru.cjdb.sql.queries.Query;
 
 import java.util.List;
@@ -9,12 +11,25 @@ import java.util.List;
  * @since 28.09.14
  */
 public class SelectQuery implements Query {
-    private final String from;
-    private final List<String> projections;
+    private String from;
+    private List<String> projections;
+    private BooleanExpression condition;
+
+    public SelectQuery() {
+    }
+
+    public SelectQuery(String from, List<String> projections, ConditionOrAnd condition) {
+        this(from, projections);
+        this.from = from;
+    }
 
     public SelectQuery(String from, List<String> projections) {
         this.from = from;
         this.projections = projections;
+    }
+
+    public BooleanExpression getCondition() {
+        return condition;
     }
 
     public List<String> getProjections() {

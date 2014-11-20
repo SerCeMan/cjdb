@@ -6,5 +6,6 @@ package ru.cjdb.sql.expressions;
  * @author Sergey Tselovalnikov
  * @since 31.10.14
  */
-public class Expression {
+public abstract class Expression {
+    public abstract Comparable getValue();
 }

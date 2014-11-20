@@ -6,6 +6,8 @@ import ru.cjdb.sql.queries.dml.SelectQuery;
 
 import javax.inject.Singleton;
 
+import java.util.ArrayList;
+
 import static java.util.Arrays.asList;
 
 /**
@@ -13,6 +15,7 @@ import static java.util.Arrays.asList;
  * @since 05.10.14
  */
 public class QueryParserImpl implements QueryParser {
+
 
     @Override
     public Query parseQuery(String sql) {
