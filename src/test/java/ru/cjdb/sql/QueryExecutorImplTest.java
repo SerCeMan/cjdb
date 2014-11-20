@@ -6,6 +6,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import ru.cjdb.CjDbModule;
+import ru.cjdb.printer.ResultPrinterImpl;
 import ru.cjdb.scheme.types.Types;
 import ru.cjdb.sql.queries.ddl.CreateTableQuery;
 import ru.cjdb.sql.queries.dml.InsertQuery;
@@ -74,6 +75,28 @@ public class QueryExecutorImplTest {
         }
     }
 
+    @Test
+    public void testCreateThenInsertThenSelectThenPrint() {
+        String tableName = TestUtils.createRandomName();
+        CreateTableQuery createTableQuery = new CreateTableQuery(tableName,
+                asList(new RowDefinition("column1", Types.INT),
+                        new RowDefinition("column2", Types.INT),
+                        new RowDefinition("column3", Types.INT)));
+        queryExecutor.execute(createTableQuery);
+
+        InsertQuery insertQuery = new InsertQuery(tableName, 1, 2, 3);
+        queryExecutor.execute(insertQuery);
+        insertQuery = new InsertQuery(tableName, 2, 2, 3);
+        queryExecutor.execute(insertQuery);
+        insertQuery = new InsertQuery(tableName, 3, 2, 3);
+        queryExecutor.execute(insertQuery);
+
+        SelectQuery selectQuery = new SelectQuery(tableName, asList("test"));
+        QueryResult queryResult = queryExecutor.execute(selectQuery);
+
+        ResultPrinterImpl printer = new ResultPrinterImpl();
+        printer.print(queryResult);
+    }
 
     @Test
     public void testCreateThenInsertThenSelectMultipleColumnsAndRows() {

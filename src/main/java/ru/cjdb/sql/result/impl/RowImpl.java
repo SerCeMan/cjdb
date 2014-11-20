@@ -21,6 +21,6 @@ public class RowImpl implements Row {
 
     @Override
     public Object[] values() {
-        return new Object[0];
+        return values;
     }
 }

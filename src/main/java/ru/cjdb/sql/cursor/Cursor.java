@@ -62,4 +62,8 @@ public class Cursor {
         }
         return null;
     }
+
+    public List<Type> types() {
+        return types;
+    }
 }
