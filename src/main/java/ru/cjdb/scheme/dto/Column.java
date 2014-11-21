@@ -1,6 +1,7 @@
 package ru.cjdb.scheme.dto;
 
 import ru.cjdb.scheme.types.Type;
+import ru.cjdb.scheme.types.impl.DoubleType;
 import ru.cjdb.scheme.types.impl.IntType;
 import ru.cjdb.scheme.types.impl.VarcharType;
 
@@ -22,7 +23,8 @@ public final class Column {
 
     @XmlElements({
             @XmlElement(name = "int", type = IntType.class),
-            @XmlElement(name = "varchar", type = VarcharType.class)
+            @XmlElement(name = "varchar", type = VarcharType.class),
+            @XmlElement(name = "double", type = DoubleType.class)
     })
     private Type type;
 

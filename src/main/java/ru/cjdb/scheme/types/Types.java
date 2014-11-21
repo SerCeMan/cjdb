@@ -1,5 +1,6 @@
 package ru.cjdb.scheme.types;
 
+import ru.cjdb.scheme.types.impl.DoubleType;
 import ru.cjdb.scheme.types.impl.IntType;
 import ru.cjdb.scheme.types.impl.VarcharType;
 
@@ -12,6 +13,8 @@ import ru.cjdb.scheme.types.impl.VarcharType;
 public final class Types {
 
     public static final Type INT = new IntType();
+
+    public static final Type DOUBLE = new DoubleType();
 
     public static Type varchar(int length) {
         return new VarcharType(length);
