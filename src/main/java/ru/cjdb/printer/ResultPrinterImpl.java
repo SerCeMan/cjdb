@@ -15,18 +15,20 @@ import java.util.List;
 public class ResultPrinterImpl implements ResultPrinter {
     @Override
     public void print(QueryResult result) {
-        if(!result.hasResult()) {
-            System.out.println("No result");
-        }
-        else
-        {
-            System.out.println("Has result");
-            Row currentRow;
-            Cursor resultCursor = result.getCursor();
-            String format = format(resultCursor.types());
-            while((currentRow = resultCursor.nextRow()) != null) {
-                System.out.format(format, currentRow.values());
-                System.out.println();
+        if(result.isSuccessful()) {
+            if (!result.hasResult()) {
+                System.out.println("OK");
+                if(result.rowsAffected() != 0) {
+                    System.out.format("Rows affected:%d\n",result.rowsAffected());
+                }
+            } else {
+                Row currentRow;
+                Cursor resultCursor = result.getCursor();
+                String format = format(resultCursor.types());
+                while ((currentRow = resultCursor.nextRow()) != null) {
+                    System.out.format(format, currentRow.values());
+                    System.out.println();
+                }
             }
         }
     }
@@ -36,6 +38,10 @@ public class ResultPrinterImpl implements ResultPrinter {
         for(Type type: types) {
             if(type.name().equals("INT")) {
                 formats.add("%10d");
+            }
+            else if(type.name().equals("VARCHAR")) {
+                String format = String.format("%%%ds",type.bytes());
+                formats.add(format);
             }
         }
         return Joiner.on(" ").join(formats);
