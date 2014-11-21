@@ -1,9 +1,11 @@
 package ru.cjdb.scheme.types.impl;
 
+import com.google.common.base.Preconditions;
 import ru.cjdb.scheme.types.Type;
 
 import javax.xml.bind.annotation.XmlAttribute;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 
 /**
  * VARCHAR
@@ -39,12 +41,18 @@ public class VarcharType implements Type {
 
     @Override
     public void write(ByteBuffer buffer, Object o) {
-
+        Preconditions.checkArgument(o instanceof String, "Object should be String when type VarcharType");
+        byte[] array = ((String)o).getBytes(Charset.forName("US-ASCII"));
+        for(int i = 0; i<length; ++i) {
+            buffer.put(array[i]);
+        }
     }
 
     @Override
     public Object read(ByteBuffer buffer) {
-        return null;
+        byte[] array = new byte[length];
+        buffer.get(array);
+        return new String(array, Charset.forName("US-ASCII"));
     }
 
     @Override
