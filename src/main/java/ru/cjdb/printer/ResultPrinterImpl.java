@@ -43,6 +43,10 @@ public class ResultPrinterImpl implements ResultPrinter {
                 String format = String.format("%%%ds",type.bytes());
                 formats.add(format);
             }
+
+            else if(type.name().equals("DOUBLE")) {
+                formats.add("%10.5f");
+            }
         }
         return Joiner.on(" ").join(formats);
     }
