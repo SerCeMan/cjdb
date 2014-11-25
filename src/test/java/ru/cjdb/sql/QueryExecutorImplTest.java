@@ -81,14 +81,14 @@ public class QueryExecutorImplTest {
         CreateTableQuery createTableQuery = new CreateTableQuery(tableName,
                 asList(new RowDefinition("column1", Types.INT),
                         new RowDefinition("column2", Types.varchar(4)),
-                        new RowDefinition("column3", Types.INT)));
+                        new RowDefinition("column3", Types.DOUBLE)));
         queryExecutor.execute(createTableQuery);
 
-        InsertQuery insertQuery = new InsertQuery(tableName, 1, "str1", 3);
+        InsertQuery insertQuery = new InsertQuery(tableName, 1, "str1", 3.14);
         queryExecutor.execute(insertQuery);
-        insertQuery = new InsertQuery(tableName, 2, "str2", 2);
+        insertQuery = new InsertQuery(tableName, 2, "str2", 2.718281828459045);
         queryExecutor.execute(insertQuery);
-        insertQuery = new InsertQuery(tableName, 3, "str3", 1);
+        insertQuery = new InsertQuery(tableName, 3, "str3", 1.0);
         queryExecutor.execute(insertQuery);
 
         SelectQuery selectQuery = new SelectQuery(tableName, asList("column1", "column2", "column3"));
