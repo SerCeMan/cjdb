@@ -33,8 +33,8 @@ public class IntType implements Type {
     }
 
     @Override
-    public Object valueOf(String value) {
-        return Integer.valueOf(value);
+    public Comparable valueOf(Object value) {
+        return Integer.valueOf(String.valueOf(value));
     }
 
     @Override

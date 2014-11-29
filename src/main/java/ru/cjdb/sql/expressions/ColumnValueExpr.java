@@ -1,5 +1,6 @@
 package ru.cjdb.sql.expressions;
 
+import ru.cjdb.scheme.types.HasType;
 import ru.cjdb.scheme.types.Type;
 import ru.cjdb.sql.result.Row;
 
@@ -9,7 +10,7 @@ import ru.cjdb.sql.result.Row;
  * @author Sergey Tselovalnikov
  * @since 29.11.14
  */
-public class ColumnValueExpr extends Expression {
+public class ColumnValueExpr extends Expression implements HasType {
 
     private final String name;
     private final Type type;
@@ -23,6 +24,7 @@ public class ColumnValueExpr extends Expression {
         return name;
     }
 
+    @Override
     public Type getType() {
         return type;
     }

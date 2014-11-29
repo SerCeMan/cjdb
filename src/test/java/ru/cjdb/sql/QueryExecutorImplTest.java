@@ -67,7 +67,7 @@ public class QueryExecutorImplTest {
         SelectQuery selectQuery = new SelectQuery(tableName, asList("test"),
                 new Comparison(
                         new ColumnValueExpr("test", Types.INT),
-                        new ValueExpression(2),
+                        new ValueExpression("2"),
                         Comparison.BinOperator.GREATER
                 ));
         QueryResult queryResult = queryExecutor.execute(selectQuery);

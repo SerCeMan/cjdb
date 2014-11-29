@@ -1,6 +1,5 @@
 package ru.cjdb.sql.expressions;
 
-import ru.cjdb.scheme.types.Type;
 import ru.cjdb.sql.result.Row;
 
 /**
@@ -10,9 +9,9 @@ import ru.cjdb.sql.result.Row;
  * @since 05.11.14
  */
 public class ValueExpression extends Expression {
-    private final Comparable value;
+    private final String value;
 
-    public ValueExpression(Comparable value) {
+    public ValueExpression(String value) {
         this.value = value;
     }
 

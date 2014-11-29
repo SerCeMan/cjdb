@@ -56,8 +56,8 @@ public class VarcharType implements Type {
     }
 
     @Override
-    public Object valueOf(String value) {
-        return value;
+    public Comparable valueOf(Object value) {
+        return String.valueOf(value);
     }
 
     @Override

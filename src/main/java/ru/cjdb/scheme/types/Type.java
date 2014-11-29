@@ -27,5 +27,5 @@ public interface Type {
      */
     Object read(ByteBuffer buffer);
 
-    Object valueOf(String value);
+    Comparable valueOf(Object value);
 }

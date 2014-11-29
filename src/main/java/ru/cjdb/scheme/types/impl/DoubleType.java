@@ -31,8 +31,8 @@ public class DoubleType implements Type {
     }
 
     @Override
-    public Object valueOf(String value) {
-        return Double.valueOf(value);
+    public Comparable valueOf(Object value) {
+        return Double.valueOf(String.valueOf(value));
     }
 
     @Override

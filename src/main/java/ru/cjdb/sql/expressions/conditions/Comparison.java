@@ -1,10 +1,13 @@
 package ru.cjdb.sql.expressions.conditions;
 
+import ru.cjdb.scheme.types.HasType;
+import ru.cjdb.scheme.types.Type;
 import ru.cjdb.sql.expressions.BooleanExpression;
 import ru.cjdb.sql.expressions.Expression;
 import ru.cjdb.sql.result.Row;
 
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * @author Sergey Tselovalnikov
@@ -43,23 +46,44 @@ public class Comparison extends BooleanExpression {
     public static enum BinOperator {
         LESS {
             @Override
-            public boolean apply(Expression left, Expression right, Row row) {
-                return left.getValue(row).compareTo(right.getValue(row)) < 0;
+            public boolean compare(Comparable leftValue, Comparable rightValue) {
+                return leftValue.compareTo(rightValue) < 0;
             }
         },
         GREATER {
             @Override
-            public boolean apply(Expression left, Expression right, Row row) {
-                return left.getValue(row).compareTo(right.getValue(row)) > 0;
+            public boolean compare(Comparable leftValue, Comparable rightValue) {
+                return leftValue.compareTo(rightValue) > 0;
             }
         },
         EQUAL {
             @Override
-            public boolean apply(Expression left, Expression right, Row row) {
-                return Objects.equals(left.getValue(row), right.getValue(row));
+            public boolean compare(Comparable leftValue, Comparable rightValue) {
+                return Objects.equals(leftValue, rightValue);
             }
         };
 
-        public abstract boolean apply(Expression left, Expression right, Row row);
+        public abstract boolean compare(Comparable leftValue, Comparable rightValue);
+
+        public final boolean apply(Expression left, Expression right, Row row) {
+            Comparable leftValue = left.getValue(row);
+            Comparable rightValue = right.getValue(row);
+            Type type = tryInferType(left, right);
+            if (type != null) {
+                leftValue = type.valueOf(leftValue);
+                rightValue = type.valueOf(rightValue);
+            }
+            return compare(leftValue, rightValue);
+        }
+
+        private Type tryInferType(Expression leftValue, Expression rightValue) {
+            if (leftValue instanceof HasType) {
+                return ((HasType) leftValue).getType();
+            }
+            if (rightValue instanceof HasType) {
+                return ((HasType) rightValue).getType();
+            }
+            return null;
+        }
     }
 }
