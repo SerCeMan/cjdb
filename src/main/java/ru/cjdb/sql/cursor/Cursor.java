@@ -1,6 +1,7 @@
 package ru.cjdb.sql.cursor;
 
 import ru.cjdb.scheme.dto.Column;
+import ru.cjdb.scheme.dto.Table;
 import ru.cjdb.scheme.types.Type;
 import ru.cjdb.sql.expressions.BooleanExpression;
 import ru.cjdb.sql.result.Row;
@@ -20,6 +21,7 @@ import java.util.List;
  * @since 17.10.14
  */
 public class Cursor {
+    private final List<Column> allColumns;
     private final List<Column> columns;
     private final BooleanExpression condition;
     private final int bytesPerRow;
@@ -31,8 +33,9 @@ public class Cursor {
     private int nextRowId = 0;
     private int nextPageId = 0;
 
-    public Cursor(List<Column> columns, BooleanExpression condition,
+    public Cursor(Table table, List<Column> columns, BooleanExpression condition,
                   int bytesPerRow, DiskManager manager, List<Type> types) {
+        this.allColumns = table.getColumns();
         this.columns = columns;
         this.condition = condition;
         this.bytesPerRow = bytesPerRow;
@@ -54,10 +57,15 @@ public class Cursor {
                 if (busy) {
                     buffer.position(nextRowId * bytesPerRow + metaDataSize);
 
-                    Object[] objects = new Object[types.size()];
-                    for (int i = 0; i < types.size(); i++) {
-                        Type type = types.get(i);
-                        objects[i] = type.read(buffer);
+                    Object[] objects = new Object[allColumns.size()];
+                    int j = 0; // result count
+                    for(Column column : allColumns) {
+                        Type type = column.getType();
+                        Object result = type.read(buffer);
+                        if(columns.contains(column)) {
+                            // Колонка в запросе
+                            objects[j++] = result;
+                        }
                     }
 
                     nextRowId++;

@@ -1,5 +1,6 @@
 package ru.cjdb.sql.handlers.dml;
 
+import javafx.scene.control.Tab;
 import ru.cjdb.config.ConfigStorage;
 import ru.cjdb.scheme.MetainfoService;
 import ru.cjdb.scheme.dto.Column;
@@ -53,7 +54,7 @@ public class SelectQueryHandler extends RegisterableQueryHandler<SelectQuery> {
                 .collect(Collectors.toList());
         BooleanExpression condition = query.getCondition();
 
-        Cursor cursor = new Cursor(columns, condition, bytesPerRow, diskManager, types);
+        Cursor cursor = new Cursor(table, columns, condition, bytesPerRow, diskManager, types);
         return new SelectQueryResult(cursor);
     }
 }

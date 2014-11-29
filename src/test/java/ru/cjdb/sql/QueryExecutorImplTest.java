@@ -52,6 +52,29 @@ public class QueryExecutorImplTest {
         Assert.assertEquals(2, queryResult.getCursor().nextRow().getAt(0));
     }
 
+
+    @Test
+    public void testDifferentColumns() {
+        String tableName = TestUtils.createRandomName();
+        CreateTableQuery createTableQuery = new CreateTableQuery(tableName,
+                asList(
+                        new ColumnDefinition("test1", Types.INT),
+                        new ColumnDefinition("test2", Types.INT)
+                ));
+        queryExecutor.execute(createTableQuery);
+
+        InsertQuery insertQuery = new InsertQuery(tableName, 1, 2);
+        queryExecutor.execute(insertQuery);
+
+        SelectQuery selectQuery = new SelectQuery(tableName, asList("test2"));
+        QueryResult queryResult = queryExecutor.execute(selectQuery);
+
+        Assert.assertTrue(queryResult.isSuccessful());
+        Assert.assertTrue(queryResult.hasResult());
+
+        Assert.assertEquals(2, queryResult.getCursor().nextRow().getAt(0));
+    }
+
     @Test
     public void testSimpleWhere() {
         String tableName = TestUtils.createRandomName();
