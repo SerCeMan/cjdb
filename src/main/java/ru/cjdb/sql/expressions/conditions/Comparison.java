@@ -2,6 +2,7 @@ package ru.cjdb.sql.expressions.conditions;
 
 import ru.cjdb.sql.expressions.BooleanExpression;
 import ru.cjdb.sql.expressions.Expression;
+import ru.cjdb.sql.result.Row;
 
 import java.util.Objects;
 
@@ -34,31 +35,31 @@ public class Comparison extends BooleanExpression {
     }
 
     @Override
-    public Comparable getValue() {
-        return operator.apply(left, right);
+    public Comparable getValue(Row row) {
+        return operator.apply(left, right, row);
     }
 
 
     public static enum BinOperator {
         LESS {
             @Override
-            public boolean apply(Expression left, Expression right) {
-                return left.getValue().compareTo(right.getValue()) < 0;
+            public boolean apply(Expression left, Expression right, Row row) {
+                return left.getValue(row).compareTo(right.getValue(row)) < 0;
             }
         },
         GREATER {
             @Override
-            public boolean apply(Expression left, Expression right) {
-                return left.getValue().compareTo(right.getValue()) > 0;
+            public boolean apply(Expression left, Expression right, Row row) {
+                return left.getValue(row).compareTo(right.getValue(row)) > 0;
             }
         },
         EQUAL {
             @Override
-            public boolean apply(Expression left, Expression right) {
-                return Objects.equals(left.getValue(), right.getValue());
+            public boolean apply(Expression left, Expression right, Row row) {
+                return Objects.equals(left.getValue(row), right.getValue(row));
             }
         };
 
-        public abstract boolean apply(Expression left, Expression right);
+        public abstract boolean apply(Expression left, Expression right, Row row);
     }
 }

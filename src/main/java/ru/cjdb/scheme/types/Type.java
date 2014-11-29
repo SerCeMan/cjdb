@@ -26,4 +26,6 @@ public interface Type {
      * Читает из буфера объект
      */
     Object read(ByteBuffer buffer);
+
+    Object valueOf(String value);
 }

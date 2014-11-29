@@ -1,6 +1,7 @@
 package ru.cjdb.sql.expressions;
 
 import ru.cjdb.scheme.types.Type;
+import ru.cjdb.sql.result.Row;
 
 /**
  * Какое-то значение - строка, число и т.д.
@@ -10,18 +11,13 @@ import ru.cjdb.scheme.types.Type;
  */
 public class ValueExpression extends Expression {
     private final Comparable value;
-    private final Type type;
 
-    public ValueExpression(Comparable value, Type type) {
+    public ValueExpression(Comparable value) {
         this.value = value;
-        this.type = type;
     }
 
-    public Type getType() {
-        return type;
-    }
-
-    public Comparable getValue() {
+    @Override
+    public Comparable getValue(Row row) {
         return value;
     }
 }

@@ -1,5 +1,7 @@
 package ru.cjdb.sql.expressions;
 
+import ru.cjdb.sql.result.Row;
+
 /**
  * Какое-то выражение SQL
  *
@@ -7,5 +9,5 @@ package ru.cjdb.sql.expressions;
  * @since 31.10.14
  */
 public abstract class Expression {
-    public abstract Comparable getValue();
+    public abstract Comparable getValue(Row row);
 }

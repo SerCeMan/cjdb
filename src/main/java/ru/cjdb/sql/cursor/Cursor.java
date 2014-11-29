@@ -1,6 +1,8 @@
 package ru.cjdb.sql.cursor;
 
+import ru.cjdb.scheme.dto.Column;
 import ru.cjdb.scheme.types.Type;
+import ru.cjdb.sql.expressions.BooleanExpression;
 import ru.cjdb.sql.result.Row;
 import ru.cjdb.sql.result.impl.RowImpl;
 import ru.cjdb.storage.fs.DiskManager;
@@ -18,6 +20,8 @@ import java.util.List;
  * @since 17.10.14
  */
 public class Cursor {
+    private final List<Column> columns;
+    private final BooleanExpression condition;
     private final int bytesPerRow;
     private final DiskManager manager;
     private final List<Type> types;
@@ -27,7 +31,10 @@ public class Cursor {
     private int nextRowId = 0;
     private int nextPageId = 0;
 
-    public Cursor(int bytesPerRow, DiskManager manager, List<Type> types) {
+    public Cursor(List<Column> columns, BooleanExpression condition,
+                  int bytesPerRow, DiskManager manager, List<Type> types) {
+        this.columns = columns;
+        this.condition = condition;
         this.bytesPerRow = bytesPerRow;
         this.manager = manager;
         this.types = types;
@@ -54,11 +61,14 @@ public class Cursor {
                     }
 
                     nextRowId++;
-                    return new RowImpl(objects);
+                    RowImpl row = new RowImpl(columns, objects);
+                    if (condition.apply(row)) {
+                        return row;
+                    }
                 }
             }
             nextPageId++;
-            nextRowId=0;
+            nextRowId = 0;
         }
         return null;
     }

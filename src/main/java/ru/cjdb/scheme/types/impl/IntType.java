@@ -33,6 +33,11 @@ public class IntType implements Type {
     }
 
     @Override
+    public Object valueOf(String value) {
+        return Integer.valueOf(value);
+    }
+
+    @Override
     public boolean equals(Object obj) {
         return obj instanceof IntType;
     }

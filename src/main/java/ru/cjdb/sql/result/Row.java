@@ -11,5 +11,7 @@ public interface Row {
 
     Object getAt(int columnNumber);
 
+    Object getByColName(String name);
+
     Object[] values();
 }

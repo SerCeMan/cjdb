@@ -1,6 +1,7 @@
 package ru.cjdb.sql.expressions.conditions;
 
 import ru.cjdb.sql.expressions.BooleanExpression;
+import ru.cjdb.sql.result.Row;
 
 /**
  * Условие
@@ -32,23 +33,23 @@ public class ConditionOrAnd extends BooleanExpression {
     }
 
     @Override
-    public Comparable getValue() {
-        return condType.apply(left, right);
+    public Comparable getValue(Row row) {
+        return condType.apply(left, right, row);
     }
 
     public static enum CondType {
         OR {
             @Override
-            public boolean apply(BooleanExpression left, BooleanExpression right) {
-                return left.getBooleanValue() || right.getBooleanValue();
+            public boolean apply(BooleanExpression left, BooleanExpression right, Row row) {
+                return left.apply(row) || right.apply(row);
             }
         }, AND {
             @Override
-            public boolean apply(BooleanExpression left, BooleanExpression right) {
-                return left.getBooleanValue() && right.getBooleanValue();
+            public boolean apply(BooleanExpression left, BooleanExpression right, Row row) {
+                return left.apply(row) && right.apply(row);
             }
         };
 
-        public abstract boolean apply(BooleanExpression left, BooleanExpression right);
+        public abstract boolean apply(BooleanExpression left, BooleanExpression right, Row row);
     }
 }

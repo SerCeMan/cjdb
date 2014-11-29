@@ -31,6 +31,11 @@ public class DoubleType implements Type {
     }
 
     @Override
+    public Object valueOf(String value) {
+        return Double.valueOf(value);
+    }
+
+    @Override
     public boolean equals(Object obj) {
         return obj instanceof DoubleType;
     }

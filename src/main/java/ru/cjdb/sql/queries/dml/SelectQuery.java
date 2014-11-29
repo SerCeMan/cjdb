@@ -18,14 +18,14 @@ public class SelectQuery implements Query {
     public SelectQuery() {
     }
 
-    public SelectQuery(String from, List<String> projections, ConditionOrAnd condition) {
-        this(from, projections);
+    public SelectQuery(String from, List<String> projections, BooleanExpression condition) {
         this.from = from;
+        this.projections = projections;
+        this.condition = condition;
     }
 
     public SelectQuery(String from, List<String> projections) {
-        this.from = from;
-        this.projections = projections;
+        this(from, projections, BooleanExpression.TRUE_EXPRESSION);
     }
 
     public BooleanExpression getCondition() {

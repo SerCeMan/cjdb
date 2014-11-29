@@ -8,6 +8,9 @@ import org.junit.Test;
 import ru.cjdb.CjDbModule;
 import ru.cjdb.printer.ResultPrinterImpl;
 import ru.cjdb.scheme.types.Types;
+import ru.cjdb.sql.expressions.ColumnValueExpr;
+import ru.cjdb.sql.expressions.ValueExpression;
+import ru.cjdb.sql.expressions.conditions.Comparison;
 import ru.cjdb.sql.queries.ddl.CreateTableQuery;
 import ru.cjdb.sql.queries.dml.InsertQuery;
 import ru.cjdb.sql.queries.dml.SelectQuery;
@@ -50,6 +53,36 @@ public class QueryExecutorImplTest {
     }
 
     @Test
+    public void testSimpleWhere() {
+        String tableName = TestUtils.createRandomName();
+        CreateTableQuery createTableQuery = new CreateTableQuery(tableName,
+                asList(new ColumnDefinition("test", Types.INT)));
+        queryExecutor.execute(createTableQuery);
+
+        queryExecutor.execute(new InsertQuery(tableName, 1));
+        queryExecutor.execute(new InsertQuery(tableName, 2));
+        queryExecutor.execute(new InsertQuery(tableName, 3));
+        queryExecutor.execute(new InsertQuery(tableName, 4));
+
+        SelectQuery selectQuery = new SelectQuery(tableName, asList("test"),
+                new Comparison(
+                        new ColumnValueExpr("test", Types.INT),
+                        new ValueExpression(2),
+                        Comparison.BinOperator.GREATER
+                ));
+        QueryResult queryResult = queryExecutor.execute(selectQuery);
+
+        Assert.assertTrue(queryResult.isSuccessful());
+        Assert.assertTrue(queryResult.hasResult());
+
+        Row row1 = queryResult.getCursor().nextRow();
+        Assert.assertEquals(3, row1.getAt(0));
+
+        Row row2 = queryResult.getCursor().nextRow();
+        Assert.assertEquals(4, row2.getAt(0));
+    }
+
+    @Test
     public void testCreateThenInsertThenSelectMoreThanPage() {
         String tableName = TestUtils.createRandomName();
         CreateTableQuery createTableQuery = new CreateTableQuery(tableName,
@@ -79,9 +112,9 @@ public class QueryExecutorImplTest {
     public void testCreateThenInsertThenSelectThenPrint() {
         String tableName = TestUtils.createRandomName();
         CreateTableQuery createTableQuery = new CreateTableQuery(tableName,
-                asList(new RowDefinition("column1", Types.INT),
-                        new RowDefinition("column2", Types.varchar(4)),
-                        new RowDefinition("column3", Types.DOUBLE)));
+                asList(new ColumnDefinition("column1", Types.INT),
+                        new ColumnDefinition("column2", Types.varchar(4)),
+                        new ColumnDefinition("column3", Types.DOUBLE)));
         queryExecutor.execute(createTableQuery);
 
         InsertQuery insertQuery = new InsertQuery(tableName, 1, "str1", 3.14);
@@ -102,8 +135,8 @@ public class QueryExecutorImplTest {
     public void testCreateThenInsertThenSelectVarchar() {
         String tableName = TestUtils.createRandomName();
         CreateTableQuery createTableQuery = new CreateTableQuery(tableName,
-                asList(new RowDefinition("str1", Types.varchar(1)),
-                        new RowDefinition("str10", Types.varchar(10))));
+                asList(new ColumnDefinition("str1", Types.varchar(1)),
+                        new ColumnDefinition("str10", Types.varchar(10))));
         queryExecutor.execute(createTableQuery);
 
         InsertQuery insertQuery = new InsertQuery(tableName, "a", "abcdefghij");
@@ -131,8 +164,8 @@ public class QueryExecutorImplTest {
     public void testCreateThenInsertThenSelectDoubleType() {
         String tableName = TestUtils.createRandomName();
         CreateTableQuery createTableQuery = new CreateTableQuery(tableName,
-                asList(new RowDefinition("double1", Types.DOUBLE),
-                        new RowDefinition("constant", Types.DOUBLE)));
+                asList(new ColumnDefinition("double1", Types.DOUBLE),
+                        new ColumnDefinition("constant", Types.DOUBLE)));
         queryExecutor.execute(createTableQuery);
 
         InsertQuery insertQuery = new InsertQuery(tableName, 1.0, 3.14);

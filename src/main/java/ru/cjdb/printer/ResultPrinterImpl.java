@@ -9,7 +9,8 @@ import ru.cjdb.sql.result.Row;
 import java.util.ArrayList;
 import java.util.List;
 
-/** ResultPrinter implementation for INT
+/**
+ * ResultPrinter implementation for INT
  * Created by flire on 17.10.14.
  */
 public class ResultPrinterImpl implements ResultPrinter {

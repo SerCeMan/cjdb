@@ -56,6 +56,11 @@ public class VarcharType implements Type {
     }
 
     @Override
+    public Object valueOf(String value) {
+        return value;
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o)
             return true;
