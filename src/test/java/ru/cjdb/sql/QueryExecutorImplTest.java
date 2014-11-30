@@ -1,5 +1,6 @@
 package ru.cjdb.sql;
 
+import com.google.common.collect.ImmutableMap;
 import dagger.Module;
 import dagger.ObjectGraph;
 import org.junit.Assert;
@@ -14,6 +15,7 @@ import ru.cjdb.sql.expressions.conditions.Comparison;
 import ru.cjdb.sql.queries.ddl.CreateTableQuery;
 import ru.cjdb.sql.queries.dml.InsertQuery;
 import ru.cjdb.sql.queries.dml.SelectQuery;
+import ru.cjdb.sql.queries.dml.UpdateQuery;
 import ru.cjdb.sql.result.QueryResult;
 import ru.cjdb.sql.result.Row;
 import ru.cjdb.testutils.TestUtils;
@@ -21,6 +23,8 @@ import ru.cjdb.testutils.TestUtils;
 import javax.inject.Inject;
 
 import static java.util.Arrays.asList;
+import static ru.cjdb.sql.expressions.conditions.Comparison.BinOperator;
+import static ru.cjdb.sql.expressions.conditions.Comparison.BinOperator.GREATER;
 import static ru.cjdb.sql.queries.ddl.CreateTableQuery.ColumnDefinition;
 
 public class QueryExecutorImplTest {
@@ -50,6 +54,49 @@ public class QueryExecutorImplTest {
         Assert.assertTrue(queryResult.hasResult());
 
         Assert.assertEquals(2, queryResult.getCursor().nextRow().getAt(0));
+    }
+
+    @Test
+    public void testInsertThenUpdate() {
+        String tableName = TestUtils.createRandomName();
+        CreateTableQuery createTableQuery = new CreateTableQuery(tableName,
+                asList(
+                        new ColumnDefinition("test1", Types.INT),
+                        new ColumnDefinition("test2", Types.INT)
+                ));
+        queryExecutor.execute(createTableQuery);
+
+        queryExecutor.execute(new InsertQuery(tableName, 1, 1));
+        queryExecutor.execute(new InsertQuery(tableName, 2, 2));
+        queryExecutor.execute(new InsertQuery(tableName, 3, 3));
+
+        UpdateQuery update = new UpdateQuery(tableName,
+                ImmutableMap.of("test1", 2, "test2", 2),
+                new Comparison(
+                        new ColumnValueExpr("test1", Types.INT),
+                        new ValueExpression("1"),
+                        BinOperator.EQUAL
+                ));
+
+        queryExecutor.execute(update);
+
+        SelectQuery selectQuery = new SelectQuery(tableName, asList("test1", "test2"));
+        QueryResult queryResult = queryExecutor.execute(selectQuery);
+
+        Assert.assertTrue(queryResult.isSuccessful());
+        Assert.assertTrue(queryResult.hasResult());
+
+        Row row1 = queryResult.getCursor().nextRow();
+        Assert.assertEquals(2, row1.getAt(0));
+        Assert.assertEquals(2, row1.getAt(1));
+
+        Row row2 = queryResult.getCursor().nextRow();
+        Assert.assertEquals(2, row2.getAt(0));
+        Assert.assertEquals(2, row2.getAt(1));
+
+        Row row3 = queryResult.getCursor().nextRow();
+        Assert.assertEquals(3, row3.getAt(0));
+        Assert.assertEquals(3, row3.getAt(1));
     }
 
 
@@ -91,7 +138,7 @@ public class QueryExecutorImplTest {
                 new Comparison(
                         new ColumnValueExpr("test", Types.INT),
                         new ValueExpression("2"),
-                        Comparison.BinOperator.GREATER
+                        GREATER
                 ));
         QueryResult queryResult = queryExecutor.execute(selectQuery);
 
@@ -179,7 +226,7 @@ public class QueryExecutorImplTest {
         Assert.assertEquals(row1.getAt(1), "abcdefghij");
 
         Row row2 = queryResult.getCursor().nextRow();
-        Assert.assertEquals(row2.getAt(0),"k");
+        Assert.assertEquals(row2.getAt(0), "k");
         Assert.assertEquals(row2.getAt(1), "klmnopqrst");
     }
 

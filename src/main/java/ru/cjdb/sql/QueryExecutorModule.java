@@ -7,6 +7,7 @@ import ru.cjdb.sql.handlers.ddl.CreateIndexQueryHandler;
 import ru.cjdb.sql.handlers.ddl.CreateTableQueryHandler;
 import ru.cjdb.sql.handlers.dml.InsertQueryHandler;
 import ru.cjdb.sql.handlers.dml.SelectQueryHandler;
+import ru.cjdb.sql.handlers.dml.UpdateQueryHandler;
 import ru.cjdb.sql.queries.ddl.CreateIndexQuery;
 
 import javax.inject.Singleton;
@@ -24,6 +25,7 @@ public class QueryExecutorModule {
     public QueryExecutor provideQueryExecutor(
             InsertQueryHandler insertQueryHandler,
             SelectQueryHandler selectQueryHandler,
+            UpdateQueryHandler updateQueryHandler,
             CreateTableQueryHandler createTableQueryHandler,
             CreateIndexQueryHandler createIndexQueryHandler
     ) {
@@ -31,6 +33,7 @@ public class QueryExecutorModule {
         queryExecutor.registerHandlers(
                 insertQueryHandler,
                 selectQueryHandler,
+                updateQueryHandler,
                 createTableQueryHandler,
                 createIndexQueryHandler
         );

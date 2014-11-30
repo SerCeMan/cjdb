@@ -55,23 +55,8 @@ public class Cursor {
             for (; nextRowId < rowCount; nextRowId++) {
                 boolean busy = freePagesBitSet.get(nextRowId);
                 if (busy) {
-                    buffer.position(nextRowId * bytesPerRow + metaDataSize);
-
-                    Object[] objects = new Object[allColumns.size()];
-                    int j = 0; // result count
-                    for(Column column : allColumns) {
-                        Type type = column.getType();
-                        if(columns.contains(column)) {
-                            // Колонка в запросе
-                            Object result = type.read(buffer);
-                            objects[j++] = result;
-                        } else {
-                            buffer.position(buffer.position() + type.bytes());
-                        }
-                    }
-
+                    RowImpl row = buildRow(buffer);
                     nextRowId++;
-                    RowImpl row = new RowImpl(columns, objects);
                     if (condition.apply(row)) {
                         return row;
                     }
@@ -83,7 +68,33 @@ public class Cursor {
         return null;
     }
 
+    private RowImpl buildRow(ByteBuffer buffer) {
+        buffer.position(nextRowId * bytesPerRow + metaDataSize);
+
+        Object[] objects = new Object[allColumns.size()];
+        int j = 0; // result count
+        for (Column column : allColumns) {
+            Type type = column.getType();
+            if (columns.contains(column)) {
+                // Колонка в запросе
+                Object result = type.read(buffer);
+                objects[j++] = result;
+            } else {
+                buffer.position(buffer.position() + type.bytes());
+            }
+        }
+        return new RowImpl(columns, objects);
+    }
+
     public List<Type> types() {
         return types;
+    }
+
+    public int currentPageId() {
+        return nextPageId;
+    }
+
+    public int currentRowId() {
+        return nextRowId - 1;
     }
 }
