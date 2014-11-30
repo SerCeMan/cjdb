@@ -80,7 +80,7 @@ public class QueryParserImpl implements QueryParser {
 
 
             BooleanExpression where = BooleanExpression.TRUE_EXPRESSION;
-            if (selectBody.getWhere() instanceof EqualsTo) {
+            if (selectBody.getWhere() instanceof EqualsTo) { // TODO >,<, etc...
                 EqualsTo eq = (EqualsTo) selectBody.getWhere();
                 ru.cjdb.sql.expressions.Expression exprLeft = parseExpression(eq.getLeftExpression(), tableName);
                 ru.cjdb.sql.expressions.Expression exprRight = parseExpression(eq.getLeftExpression(), tableName);

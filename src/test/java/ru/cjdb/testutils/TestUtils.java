@@ -13,6 +13,8 @@ public class TestUtils {
     }
 
     public static String createRandomName() {
-        return ("uniqueDb" + UUID.randomUUID() + ThreadLocalRandom.current().nextLong()).replaceAll("-", "").toLowerCase();
+        return ("uniqueDb" + UUID.randomUUID() + ThreadLocalRandom.current().nextLong())
+                .replaceAll("-", "")
+                .toLowerCase();
     }
 }
