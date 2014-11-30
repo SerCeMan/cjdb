@@ -23,6 +23,7 @@ import java.util.Arrays;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static ru.cjdb.sql.queries.ddl.CreateTableQuery.ColumnDefinition;
 
 public class QueryParserImplTest {
 
@@ -49,6 +50,30 @@ public class QueryParserImplTest {
         SelectQuery select = (SelectQuery) query;
         assertEquals(tableName, select.getFrom());
         assertEquals(Arrays.asList("test"), select.getProjections());
+    }
+
+
+    @Test
+    public void testCreateTableQuery() {
+        String cool_table = "cool_table";
+        Query tableQuery = queryParser.parseQuery("create table " + cool_table +
+                "(test1 INT, test2 DOUBLE, test3 VARCHAR(200))");
+
+        assertTrue(tableQuery instanceof CreateTableQuery);
+        CreateTableQuery query = (CreateTableQuery) tableQuery;
+        assertEquals(cool_table, query.getName());
+        ColumnDefinition colDef1 = query.getRows().get(0);
+        assertEquals("test1", colDef1.getName());
+        assertEquals(Types.INT, colDef1.getType());
+
+        ColumnDefinition colDef2 = query.getRows().get(1);
+        assertEquals("test2", colDef2.getName());
+        assertEquals(Types.DOUBLE, colDef2.getType());
+
+
+        ColumnDefinition colDef3 = query.getRows().get(2);
+        assertEquals("test3", colDef3.getName());
+        assertEquals(Types.varchar(200), colDef3.getType());
     }
 
     @Test

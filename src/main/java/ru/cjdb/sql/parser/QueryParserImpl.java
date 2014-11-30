@@ -1,6 +1,5 @@
 package ru.cjdb.sql.parser;
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.LongValue;
@@ -11,26 +10,28 @@ import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.create.index.CreateIndex;
-import net.sf.jsqlparser.statement.create.table.CreateTable;
+import net.sf.jsqlparser.statement.create.table.*;
+import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
+import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.select.SelectExpressionItem;
+import net.sf.jsqlparser.statement.update.Update;
 import ru.cjdb.scheme.MetainfoService;
+import ru.cjdb.scheme.types.Type;
+import ru.cjdb.scheme.types.Types;
 import ru.cjdb.sql.expressions.BooleanExpression;
 import ru.cjdb.sql.expressions.ColumnValueExpr;
 import ru.cjdb.sql.expressions.ValueExpression;
 import ru.cjdb.sql.expressions.conditions.Comparison;
-import ru.cjdb.sql.expressions.conditions.ConditionOrAnd;
 import ru.cjdb.sql.queries.Query;
+import ru.cjdb.sql.queries.ddl.CreateTableQuery;
 import ru.cjdb.sql.queries.dml.InsertQuery;
 import ru.cjdb.sql.queries.dml.SelectQuery;
 
-import javax.inject.Inject;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static java.util.Arrays.asList;
 
 /**
  * @author Sergey Tselovalnikov
@@ -58,9 +59,20 @@ public class QueryParserImpl implements QueryParser {
         }
 
         if (parse instanceof CreateTable) {
+            CreateTable createTable = (CreateTable) parse;
+            String name = createTable.getTable().getName();
+            List<CreateTableQuery.ColumnDefinition> colDefs = createTable
+                    .getColumnDefinitions()
+                    .stream()
+                    .map(this::convertColumnDef)
+                    .collect(Collectors.toList());
+
+            return new CreateTableQuery(name, colDefs);
+        }
+        if (parse instanceof Insert) {
             //TODO
         }
-        if (parse instanceof InsertQuery) {
+        if (parse instanceof Update) {
             //TODO
         }
         if (parse instanceof CreateIndex) {
@@ -89,6 +101,26 @@ public class QueryParserImpl implements QueryParser {
             return new SelectQuery(tableName, columns, where);
         }
         return new InsertQuery("test", 1);
+    }
+
+    private CreateTableQuery.ColumnDefinition convertColumnDef(ColumnDefinition columnDefinition) {
+        String columnName = columnDefinition.getColumnName();
+        Type type = convertDataType(columnDefinition.getColDataType());
+        return new CreateTableQuery.ColumnDefinition(columnName, type);
+    }
+
+    private Type convertDataType(ColDataType colDataType) {
+        switch (colDataType.getDataType()) {
+            case "int":
+                return Types.INT;
+            case "double":
+                return Types.DOUBLE;
+            case "varchar":
+                int length = Integer.valueOf(colDataType.getArgumentsStringList().get(0));
+                return Types.varchar(length);
+            default:
+                throw new SqlParseException("Unsupported data type " + colDataType.getDataType());
+        }
     }
 
     private ru.cjdb.sql.expressions.Expression parseExpression(Expression expr, String tableName) {
