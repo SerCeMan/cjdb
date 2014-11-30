@@ -29,6 +29,8 @@ dependencies {
 
     compile 'com.squareup.dagger:dagger-compiler:1.2.2'
 
+    compile 'com.github.jsqlparser:jsqlparser:0.9.1'
+
     testCompile 'junit:junit:4.11'
     testCompile 'org.mockito:mockito-all:1.10.8'
 }

@@ -9,9 +9,10 @@ import java.util.concurrent.ThreadLocalRandom;
  */
 public class TestUtils {
 
-    private TestUtils() {}
+    private TestUtils() {
+    }
 
     public static String createRandomName() {
-        return "uniqueDb" + UUID.randomUUID() + ThreadLocalRandom.current().nextLong();
+        return ("uniqueDb" + UUID.randomUUID() + ThreadLocalRandom.current().nextLong()).replaceAll("-", "").toLowerCase();
     }
 }
