@@ -56,8 +56,8 @@ public class Cursor {
                 boolean busy = freePagesBitSet.get(nextRowId);
                 if (busy) {
                     RowImpl row = buildRow(buffer);
-                    nextRowId++;
                     if (condition.apply(row)) {
+                        nextRowId++;
                         return row;
                     }
                 }

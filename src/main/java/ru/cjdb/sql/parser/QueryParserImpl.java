@@ -115,7 +115,7 @@ public class QueryParserImpl implements QueryParser {
             if (selectBody.getWhere() instanceof EqualsTo) { // TODO >,<, etc...
                 EqualsTo eq = (EqualsTo) selectBody.getWhere();
                 ru.cjdb.sql.expressions.Expression exprLeft = parseExpression(eq.getLeftExpression(), tableName);
-                ru.cjdb.sql.expressions.Expression exprRight = parseExpression(eq.getLeftExpression(), tableName);
+                ru.cjdb.sql.expressions.Expression exprRight = parseExpression(eq.getRightExpression(), tableName);
                 where = new Comparison(exprLeft, exprRight, Comparison.BinOperator.EQUAL);
             }
             return new SelectQuery(tableName, columns, where);
