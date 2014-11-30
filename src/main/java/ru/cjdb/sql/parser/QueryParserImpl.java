@@ -1,18 +1,22 @@
 package ru.cjdb.sql.parser;
 
 import net.sf.jsqlparser.JSQLParserException;
+import net.sf.jsqlparser.expression.DoubleValue;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.LongValue;
 import net.sf.jsqlparser.expression.StringValue;
 import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
+import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.create.index.CreateIndex;
-import net.sf.jsqlparser.statement.create.table.*;
+import net.sf.jsqlparser.statement.create.table.ColDataType;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
+import net.sf.jsqlparser.statement.create.table.CreateTable;
 import net.sf.jsqlparser.statement.insert.Insert;
+import net.sf.jsqlparser.statement.select.AllColumns;
 import net.sf.jsqlparser.statement.select.PlainSelect;
 import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.select.SelectExpressionItem;
@@ -70,6 +74,14 @@ public class QueryParserImpl implements QueryParser {
             return new CreateTableQuery(name, colDefs);
         }
         if (parse instanceof Insert) {
+            Insert insert = (Insert) parse;
+            String name = insert.getTable().getName();
+            List<Object> values = new ArrayList<>();
+            ExpressionList list = (ExpressionList) insert.getItemsList();
+            values.addAll(list.getExpressions().stream()
+                    .map(this::getValue)
+                    .collect(Collectors.toList()));
+            return new InsertQuery(name, values.toArray());
             //TODO
         }
         if (parse instanceof Update) {
@@ -83,12 +95,20 @@ public class QueryParserImpl implements QueryParser {
             PlainSelect selectBody = (PlainSelect) ((Select) parse).getSelectBody();
             String tableName = ((Table) selectBody.getFromItem()).getName();
 
-            List<String> columns = selectBody.getSelectItems().stream()
-                    .map(SelectExpressionItem.class::cast)
-                    .map(SelectExpressionItem::getExpression)
-                    .map(Column.class::cast)
-                    .map(Column::getColumnName)
-                    .collect(Collectors.toList());
+            List<String> columns;
+            if (selectBody.getSelectItems().get(0) instanceof AllColumns) {
+                columns = metainfoService.getTable(tableName)
+                        .getColumns().stream()
+                        .map(ru.cjdb.scheme.dto.Column::getName)
+                        .collect(Collectors.toList());
+            } else {
+                columns = selectBody.getSelectItems().stream()
+                        .map(SelectExpressionItem.class::cast)
+                        .map(SelectExpressionItem::getExpression)
+                        .map(Column.class::cast)
+                        .map(Column::getColumnName)
+                        .collect(Collectors.toList());
+            }
 
 
             BooleanExpression where = BooleanExpression.TRUE_EXPRESSION;
@@ -101,6 +121,19 @@ public class QueryParserImpl implements QueryParser {
             return new SelectQuery(tableName, columns, where);
         }
         return new InsertQuery("test", 1);
+    }
+
+    private Object getValue(Expression expr) {
+        if (expr instanceof LongValue) {
+            return (int)((LongValue) expr).getValue();
+        }
+        if(expr instanceof DoubleValue) {
+            return ((DoubleValue) expr).getValue();
+        }
+        if(expr instanceof StringValue) {
+            return ((StringValue) expr).getValue();
+        }
+        throw new SqlParseException("Unknown value type " + expr.getClass());
     }
 
     private CreateTableQuery.ColumnDefinition convertColumnDef(ColumnDefinition columnDefinition) {

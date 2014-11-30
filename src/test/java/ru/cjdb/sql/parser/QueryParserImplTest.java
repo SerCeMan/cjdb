@@ -14,6 +14,7 @@ import ru.cjdb.scheme.dto.Table;
 import ru.cjdb.scheme.types.Types;
 import ru.cjdb.sql.queries.Query;
 import ru.cjdb.sql.queries.ddl.CreateTableQuery;
+import ru.cjdb.sql.queries.dml.InsertQuery;
 import ru.cjdb.sql.queries.dml.SelectQuery;
 import ru.cjdb.testutils.TestUtils;
 
@@ -50,6 +51,21 @@ public class QueryParserImplTest {
         SelectQuery select = (SelectQuery) query;
         assertEquals(tableName, select.getFrom());
         assertEquals(Arrays.asList("test"), select.getProjections());
+    }
+
+
+    @Test
+    public void testParseSimpleInsert() {
+        String tableName = TestUtils.createRandomName();
+        Query query = queryParser.parseQuery("insert into " + tableName + " values (1, 2.0, 'hello')");
+
+        assertTrue(query instanceof InsertQuery);
+        InsertQuery insert = (InsertQuery) query;
+
+        assertEquals(tableName, insert.getName());
+        assertEquals(1,insert.getValues()[0]);
+        assertEquals(2.0,insert.getValues()[1]);
+        assertEquals("hello",insert.getValues()[2]);
     }
 
 

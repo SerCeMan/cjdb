@@ -42,8 +42,8 @@ public class VarcharType implements Type {
     @Override
     public void write(ByteBuffer buffer, Object o) {
         Preconditions.checkArgument(o instanceof String, "Object should be String when type VarcharType");
-        byte[] array = ((String)o).getBytes(Charset.forName("US-ASCII"));
-        for(int i = 0; i<length; ++i) {
+        byte[] array = ((String) o).getBytes(Charset.forName("US-ASCII"));
+        for (int i = 0; i < array.length; ++i) {
             buffer.put(array[i]);
         }
     }
