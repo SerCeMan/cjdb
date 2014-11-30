@@ -21,8 +21,20 @@ public class Metainfo {
     @XmlElement(name = "table")
     private List<Table> tables = new ArrayList<>();
 
+    @XmlElementWrapper(name = "indexes")
+    @XmlElement(name = "index")
+    private List<Index> indexes = new ArrayList<>();
+
     public List<Table> getTables() {
         return tables;
+    }
+
+    public List<Index> getIndexes() {
+        return indexes;
+    }
+
+    public void addIndexes(Index... indexes) {
+        this.indexes.addAll(asList(indexes));
     }
 
     public void addTable(Table table) {

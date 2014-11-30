@@ -1,5 +1,6 @@
 package ru.cjdb.scheme;
 
+import ru.cjdb.scheme.dto.Index;
 import ru.cjdb.scheme.dto.Table;
 import ru.cjdb.scheme.types.Type;
 
@@ -19,4 +20,6 @@ public interface MetainfoService {
     int bytesPerRow(Table table);
 
     List<Type> getColumnTypes(Table table);
+
+    void addIndex(Index index);
 }

@@ -1,6 +1,5 @@
 package ru.cjdb.sql.handlers.dml;
 
-import javafx.scene.control.Tab;
 import ru.cjdb.config.ConfigStorage;
 import ru.cjdb.scheme.MetainfoService;
 import ru.cjdb.scheme.dto.Column;
@@ -11,7 +10,6 @@ import ru.cjdb.sql.expressions.BooleanExpression;
 import ru.cjdb.sql.handlers.RegisterableQueryHandler;
 import ru.cjdb.sql.queries.dml.SelectQuery;
 import ru.cjdb.sql.result.QueryResult;
-import ru.cjdb.sql.result.Row;
 import ru.cjdb.sql.result.impl.SelectQueryResult;
 import ru.cjdb.storage.fs.DiskManager;
 import ru.cjdb.storage.fs.DiskManagerFactory;

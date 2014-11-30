@@ -61,10 +61,12 @@ public class Cursor {
                     int j = 0; // result count
                     for(Column column : allColumns) {
                         Type type = column.getType();
-                        Object result = type.read(buffer);
                         if(columns.contains(column)) {
                             // Колонка в запросе
+                            Object result = type.read(buffer);
                             objects[j++] = result;
+                        } else {
+                            buffer.position(buffer.position() + type.bytes());
                         }
                     }
 

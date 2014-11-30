@@ -3,9 +3,11 @@ package ru.cjdb.sql;
 import dagger.Module;
 import dagger.Provides;
 import ru.cjdb.scheme.MetaStorageModule;
+import ru.cjdb.sql.handlers.ddl.CreateIndexQueryHandler;
 import ru.cjdb.sql.handlers.ddl.CreateTableQueryHandler;
 import ru.cjdb.sql.handlers.dml.InsertQueryHandler;
 import ru.cjdb.sql.handlers.dml.SelectQueryHandler;
+import ru.cjdb.sql.queries.ddl.CreateIndexQuery;
 
 import javax.inject.Singleton;
 
@@ -22,13 +24,15 @@ public class QueryExecutorModule {
     public QueryExecutor provideQueryExecutor(
             InsertQueryHandler insertQueryHandler,
             SelectQueryHandler selectQueryHandler,
-            CreateTableQueryHandler createTableQueryHandler
+            CreateTableQueryHandler createTableQueryHandler,
+            CreateIndexQueryHandler createIndexQueryHandler
     ) {
         QueryExecutorImpl queryExecutor = new QueryExecutorImpl();
         queryExecutor.registerHandlers(
                 insertQueryHandler,
                 selectQueryHandler,
-                createTableQueryHandler
+                createTableQueryHandler,
+                createIndexQueryHandler
         );
         return queryExecutor;
 

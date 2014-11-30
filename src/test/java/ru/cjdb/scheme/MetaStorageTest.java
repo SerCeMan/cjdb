@@ -1,5 +1,6 @@
 package ru.cjdb.scheme;
 
+import org.mockito.Mockito;
 import ru.cjdb.config.ConfigModule;
 import ru.cjdb.config.ConfigStorage;
 import dagger.Module;
@@ -8,9 +9,7 @@ import dagger.Provides;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import ru.cjdb.scheme.dto.Column;
-import ru.cjdb.scheme.dto.Metainfo;
-import ru.cjdb.scheme.dto.Table;
+import ru.cjdb.scheme.dto.*;
 import ru.cjdb.scheme.storage.MetaStorage;
 import ru.cjdb.scheme.storage.MetaStorageImpl;
 import ru.cjdb.scheme.types.Types;
@@ -18,10 +17,16 @@ import ru.cjdb.scheme.types.Types;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.io.File;
+import java.util.Arrays;
+
+import static java.util.Arrays.asList;
+import static ru.cjdb.scheme.dto.Index.IndexColumnDef;
 
 public class MetaStorageTest {
     @Inject
     MetaStorage metaStorage;
+    @Inject
+    MetainfoService metainfoService;
     @Inject
     ConfigStorage configStorage;
 
@@ -36,6 +41,17 @@ public class MetaStorageTest {
                 throw new RuntimeException("Test directory not created");
             }
         }
+    }
+
+    @Test
+    public void testIndexCreated() {
+        Table table = new Table("test_table");
+        table.addColumn(new Column("test", Types.INT));
+        metainfoService.addTable(table);
+        Index index = new Index("1", "2", false, asList(new IndexColumnDef("test", Order.ASC)));
+        metainfoService.addIndex(index);
+
+        Assert.assertEquals(metaStorage.getMetainfo().getIndexes().get(0), index);
     }
 
     @Test
@@ -59,6 +75,12 @@ public class MetaStorageTest {
         @Singleton
         public MetaStorage provideStorage(ConfigStorage configStorage) {
             return new MetaStorageImpl(configStorage);
+        }
+
+        @Provides
+        @Singleton
+        public MetainfoService provideMetaindoService(MetaStorage metaStorage) {
+            return new MetainfoServiceImpl(metaStorage);
         }
     }
 }

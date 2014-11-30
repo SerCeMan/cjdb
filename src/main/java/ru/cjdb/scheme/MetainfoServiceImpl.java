@@ -1,6 +1,7 @@
 package ru.cjdb.scheme;
 
 import ru.cjdb.scheme.dto.Column;
+import ru.cjdb.scheme.dto.Index;
 import ru.cjdb.scheme.dto.Metainfo;
 import ru.cjdb.scheme.dto.Table;
 import ru.cjdb.scheme.storage.MetaStorage;
@@ -52,5 +53,11 @@ public class MetainfoServiceImpl implements MetainfoService {
                 .stream()
                 .map(Column::getType)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public void addIndex(Index index) {
+        metainfo.addIndexes(index);
+        metaStorage.saveMetainfo(metainfo);
     }
 }
