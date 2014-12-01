@@ -26,10 +26,9 @@ test {
 dependencies {
     compile 'com.squareup.dagger:dagger:1.2.2'
     compile 'com.google.guava:guava:18.0'
-
     compile 'com.squareup.dagger:dagger-compiler:1.2.2'
-
     compile 'com.github.jsqlparser:jsqlparser:0.9.1'
+    compile 'org.slf4j:slf4j-simple:1.7.7'
 
     testCompile 'junit:junit:4.11'
     testCompile 'org.mockito:mockito-all:1.10.8'

@@ -15,11 +15,6 @@ public final class OkQueryResult implements QueryResult {
     }
 
     @Override
-    public boolean isSuccessful() {
-        return true;
-    }
-
-    @Override
     public boolean hasResult() {
         return false;
     }

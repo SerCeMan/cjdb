@@ -7,7 +7,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import ru.cjdb.CjDbModule;
-import ru.cjdb.printer.ResultPrinterImpl;
+import ru.cjdb.printer.ConsoleResultPrinter;
 import ru.cjdb.scheme.types.Types;
 import ru.cjdb.sql.expressions.ColumnValueExpr;
 import ru.cjdb.sql.expressions.ValueExpression;
@@ -50,7 +50,6 @@ public class QueryExecutorImplTest {
         SelectQuery selectQuery = new SelectQuery(tableName, asList("test"));
         QueryResult queryResult = queryExecutor.execute(selectQuery);
 
-        Assert.assertTrue(queryResult.isSuccessful());
         Assert.assertTrue(queryResult.hasResult());
 
         Assert.assertEquals(2, queryResult.getCursor().nextRow().getAt(0));
@@ -83,7 +82,7 @@ public class QueryExecutorImplTest {
         SelectQuery selectQuery = new SelectQuery(tableName, asList("test1", "test2"));
         QueryResult queryResult = queryExecutor.execute(selectQuery);
 
-        Assert.assertTrue(queryResult.isSuccessful());
+        
         Assert.assertTrue(queryResult.hasResult());
 
         Row row1 = queryResult.getCursor().nextRow();
@@ -116,7 +115,6 @@ public class QueryExecutorImplTest {
         SelectQuery selectQuery = new SelectQuery(tableName, asList("test2"));
         QueryResult queryResult = queryExecutor.execute(selectQuery);
 
-        Assert.assertTrue(queryResult.isSuccessful());
         Assert.assertTrue(queryResult.hasResult());
 
         Assert.assertEquals(2, queryResult.getCursor().nextRow().getAt(0));
@@ -142,7 +140,6 @@ public class QueryExecutorImplTest {
                 ));
         QueryResult queryResult = queryExecutor.execute(selectQuery);
 
-        Assert.assertTrue(queryResult.isSuccessful());
         Assert.assertTrue(queryResult.hasResult());
 
         Row row1 = queryResult.getCursor().nextRow();
@@ -171,7 +168,7 @@ public class QueryExecutorImplTest {
         SelectQuery selectQuery = new SelectQuery(tableName, asList("test"));
         QueryResult queryResult = queryExecutor.execute(selectQuery);
 
-        Assert.assertTrue(queryResult.isSuccessful());
+        
         Assert.assertTrue(queryResult.hasResult());
         for (int i = 0; i < count; i++) {
             Assert.assertEquals(i, queryResult.getCursor().nextRow().getAt(0));
@@ -197,7 +194,7 @@ public class QueryExecutorImplTest {
         SelectQuery selectQuery = new SelectQuery(tableName, asList("column1", "column2", "column3"));
         QueryResult queryResult = queryExecutor.execute(selectQuery);
 
-        ResultPrinterImpl printer = new ResultPrinterImpl();
+        ConsoleResultPrinter printer = new ConsoleResultPrinter();
         printer.print(queryResult);
     }
 
@@ -217,7 +214,6 @@ public class QueryExecutorImplTest {
         SelectQuery selectQuery = new SelectQuery(tableName, asList("str1", "str10"));
         QueryResult queryResult = queryExecutor.execute(selectQuery);
 
-        Assert.assertTrue(queryResult.isSuccessful());
         Assert.assertTrue(queryResult.hasResult());
 
         Row row1 = queryResult.getCursor().nextRow();
@@ -246,7 +242,6 @@ public class QueryExecutorImplTest {
         SelectQuery selectQuery = new SelectQuery(tableName, asList("double1", "constant"));
         QueryResult queryResult = queryExecutor.execute(selectQuery);
 
-        Assert.assertTrue(queryResult.isSuccessful());
         Assert.assertTrue(queryResult.hasResult());
 
         Row row1 = queryResult.getCursor().nextRow();
@@ -276,7 +271,6 @@ public class QueryExecutorImplTest {
         SelectQuery selectQuery = new SelectQuery(tableName, asList("test1", "test2"));
         QueryResult queryResult = queryExecutor.execute(selectQuery);
 
-        Assert.assertTrue(queryResult.isSuccessful());
         Assert.assertTrue(queryResult.hasResult());
 
 //        Assert.assertEquals(queryResult.getCursor().getRowCount(), 2);

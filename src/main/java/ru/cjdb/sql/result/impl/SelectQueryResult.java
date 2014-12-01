@@ -17,11 +17,6 @@ public class SelectQueryResult implements QueryResult {
     }
 
     @Override
-    public boolean isSuccessful() {
-        return true;
-    }
-
-    @Override
     public boolean hasResult() {
         return true;
     }

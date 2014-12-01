@@ -1,6 +1,8 @@
 package ru.cjdb;
 
 import dagger.ObjectGraph;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import ru.cjdb.printer.ResultPrinter;
 import ru.cjdb.sql.QueryExecutor;
 import ru.cjdb.sql.parser.QueryParser;
@@ -19,6 +21,7 @@ import java.util.Scanner;
  */
 @Singleton
 public class CjDatabase {
+    private static final Logger LOG = LoggerFactory.getLogger(CjDatabase.class);
 
     private QueryParser queryParser;
     private QueryExecutor queryExecutor;
@@ -37,8 +40,11 @@ public class CjDatabase {
 
         Scanner scanner = new Scanner(System.in);
         while (true) {
-            String line = scanner.nextLine();
-            db.execPrint(line);
+            try {
+                db.execPrint(scanner.nextLine());
+            } catch (Exception e) {
+                LOG.error("Error executing request", e);
+            }
         }
     }
 

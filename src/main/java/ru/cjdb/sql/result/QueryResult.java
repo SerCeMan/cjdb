@@ -9,7 +9,6 @@ import ru.cjdb.sql.cursor.Cursor;
  * @since 28.09.14
  */
 public interface QueryResult {
-    boolean isSuccessful();
 
     boolean hasResult();
 
