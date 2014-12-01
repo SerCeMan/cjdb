@@ -5,8 +5,7 @@ import net.sf.jsqlparser.expression.DoubleValue;
 import net.sf.jsqlparser.expression.Expression;
 import net.sf.jsqlparser.expression.LongValue;
 import net.sf.jsqlparser.expression.StringValue;
-import net.sf.jsqlparser.expression.operators.relational.EqualsTo;
-import net.sf.jsqlparser.expression.operators.relational.ExpressionList;
+import net.sf.jsqlparser.expression.operators.relational.*;
 import net.sf.jsqlparser.parser.CCJSqlParserUtil;
 import net.sf.jsqlparser.schema.Column;
 import net.sf.jsqlparser.schema.Table;
@@ -36,6 +35,8 @@ import ru.cjdb.sql.queries.dml.SelectQuery;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static ru.cjdb.sql.expressions.conditions.Comparison.BinOperator;
 
 /**
  * @author Sergey Tselovalnikov
@@ -112,15 +113,29 @@ public class QueryParserImpl implements QueryParser {
 
 
             BooleanExpression where = BooleanExpression.TRUE_EXPRESSION;
-            if (selectBody.getWhere() instanceof EqualsTo) { // TODO >,<, etc...
-                EqualsTo eq = (EqualsTo) selectBody.getWhere();
+            if (selectBody.getWhere() instanceof OldOracleJoinBinaryExpression) { // TODO >,<, etc...
+                OldOracleJoinBinaryExpression eq = (OldOracleJoinBinaryExpression) selectBody.getWhere();
                 ru.cjdb.sql.expressions.Expression exprLeft = parseExpression(eq.getLeftExpression(), tableName);
                 ru.cjdb.sql.expressions.Expression exprRight = parseExpression(eq.getRightExpression(), tableName);
-                where = new Comparison(exprLeft, exprRight, Comparison.BinOperator.EQUAL);
+                BinOperator operator = getBinOperator(selectBody.getWhere());
+                where = new Comparison(exprLeft, exprRight, operator);
             }
             return new SelectQuery(tableName, columns, where);
         }
         return new InsertQuery("test", 1);
+    }
+
+    private BinOperator getBinOperator(Expression where) {
+        if(where instanceof EqualsTo) {
+            return BinOperator.EQUAL;
+        }
+        if(where instanceof GreaterThan) {
+            return BinOperator.GREATER;
+        }
+        if(where instanceof MinorThan) {
+            return BinOperator.LESS;
+        }
+        throw new SqlParseException("Unknown binary expression " + where.getClass());
     }
 
     private Object getValue(Expression expr) {

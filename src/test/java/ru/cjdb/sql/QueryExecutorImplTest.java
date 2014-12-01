@@ -33,6 +33,7 @@ import java.util.Arrays;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static ru.cjdb.scheme.dto.Index.IndexType;
 import static ru.cjdb.sql.expressions.conditions.Comparison.BinOperator;
 import static ru.cjdb.sql.expressions.conditions.Comparison.BinOperator.GREATER;
@@ -153,6 +154,28 @@ public class QueryExecutorImplTest {
     }
 
     @Test
+    public void testSimpleWhereLess() {
+        String tableName = TestUtils.createRandomName();
+
+        exec("create table %s (test1 INT, test2 INT)", tableName);
+
+        exec("insert into %s values(%s, %s)", tableName, 1, 1);
+        exec("insert into %s values(%s, %s)", tableName, 2, 2);
+        exec("insert into %s values(%s, %s)", tableName, 3, 3);
+        exec("insert into %s values(%s, %s)", tableName, 4, 4);
+
+        QueryResult queryResult = exec("select test2 from %s where test2<%s", tableName, 3);
+
+        Row row1 = queryResult.getCursor().nextRow();
+        assertEquals(1, row1.getAt(0));
+
+        Row row2 = queryResult.getCursor().nextRow();
+        assertEquals(2, row2.getAt(0));
+
+        assertTrue(queryResult.getCursor().nextRow() == null);
+    }
+
+    @Test
     public void testSimpleWhere() {
         String tableName = TestUtils.createRandomName();
         CreateTableQuery createTableQuery = new CreateTableQuery(tableName,
@@ -179,6 +202,7 @@ public class QueryExecutorImplTest {
 
         Row row2 = queryResult.getCursor().nextRow();
         assertEquals(4, row2.getAt(0));
+        assertTrue(queryResult.getCursor().nextRow() == null);
     }
 
     @Test
