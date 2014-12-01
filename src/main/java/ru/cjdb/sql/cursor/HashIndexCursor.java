@@ -2,24 +2,15 @@ package ru.cjdb.sql.cursor;
 
 import ru.cjdb.scheme.dto.Column;
 import ru.cjdb.scheme.dto.Index;
-import ru.cjdb.scheme.dto.Table;
 import ru.cjdb.scheme.types.Type;
-import ru.cjdb.scheme.types.Types;
 import ru.cjdb.sql.expressions.BooleanExpression;
 import ru.cjdb.sql.result.Row;
-import ru.cjdb.sql.result.impl.RowImpl;
-import ru.cjdb.storage.DiskPage;
-import ru.cjdb.storage.DiskPageUtils;
 import ru.cjdb.storage.fs.DiskManager;
 import ru.cjdb.storage.fs.DiskManagerFactory;
 import ru.cjdb.utils.IndexUtils;
 
-import java.nio.ByteBuffer;
-import java.util.Arrays;
-import java.util.BitSet;
 import java.util.List;
 
-import static java.util.Arrays.asList;
 import static ru.cjdb.sql.expressions.BooleanExpression.TRUE_EXPRESSION;
 
 /**

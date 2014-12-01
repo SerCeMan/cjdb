@@ -77,6 +77,10 @@ public class SelectQueryHandler extends RegisterableQueryHandler<SelectQuery> {
                                         List<Column> columns, BooleanExpression condition, List<Index> indexes) {
         if (query.getCondition() instanceof Comparison) {
             Comparison comparison = (Comparison) query.getCondition();
+            if(comparison.getOperator() != Comparison.BinOperator.EQUAL) {
+                // Для хэш индекса нас интересуют только
+                return null;
+            }
             Expression left = comparison.getLeft();
             Expression right = comparison.getRight();
             String colName = null;
