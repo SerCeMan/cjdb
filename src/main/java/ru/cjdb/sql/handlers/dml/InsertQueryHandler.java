@@ -2,9 +2,11 @@ package ru.cjdb.sql.handlers.dml;
 
 import ru.cjdb.config.ConfigStorage;
 import ru.cjdb.scheme.MetainfoService;
+import ru.cjdb.scheme.dto.Index;
 import ru.cjdb.scheme.dto.Table;
 import ru.cjdb.scheme.types.Type;
 import ru.cjdb.sql.handlers.RegisterableQueryHandler;
+import ru.cjdb.sql.indexes.IndexService;
 import ru.cjdb.sql.queries.dml.InsertQuery;
 import ru.cjdb.sql.result.impl.OkQueryResult;
 import ru.cjdb.sql.result.QueryResult;
@@ -15,7 +17,6 @@ import ru.cjdb.storage.fs.*;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.nio.ByteBuffer;
-import java.util.BitSet;
 import java.util.List;
 
 /**
@@ -31,6 +32,8 @@ public class InsertQueryHandler extends RegisterableQueryHandler<InsertQuery> {
     ConfigStorage configStorage;
     @Inject
     DiskManagerFactory diskManagerFactory;
+    @Inject
+    IndexService indexService;
 
     @Inject
     public InsertQueryHandler() {
@@ -51,7 +54,7 @@ public class InsertQueryHandler extends RegisterableQueryHandler<InsertQuery> {
 
         int rowCount = DiskPageUtils.calculateRowCount(bytesPerRow);
         int metaDataSize = DiskPageUtils.metadataSize(bytesPerRow);
-        int freeRowId = findFreeRowId(rowCount, metaDataSize, buffer);
+        int freeRowId = DiskPageUtils.findFreeRowIdAndSetAsBusy(rowCount, metaDataSize, buffer);
         int freeRowOffset = metaDataSize + freeRowId * bytesPerRow;
 
         buffer.position(freeRowOffset);
@@ -63,26 +66,14 @@ public class InsertQueryHandler extends RegisterableQueryHandler<InsertQuery> {
 
         freePage.setDirty(true);
 
+        // добавим строчку в индексы
+        List<Index> indexes = metainfoService.getIndexes(table);
+        for(Index index: indexes) {
+            indexService.addRow(table, index, freePage.getId(), freeRowId, query.getValues());
+        }
+
         manager.flush();
         return OkQueryResult.INSTANCE;
-    }
-
-    private int findFreeRowId(int rowCount, int metaDataSize, ByteBuffer buffer) {
-        int freeRowId = -1;
-        BitSet freePagesBitSet = DiskPageUtils.getPageBitMask(metaDataSize, buffer);
-        for (int i = 0; i < rowCount; i++) {
-            boolean busy = freePagesBitSet.get(i);
-            if (!busy) {
-                // нашли свободную страничку
-                freeRowId = i;
-                // Пишем ее как занятую
-                freePagesBitSet.set(freeRowId, true);
-                DiskPageUtils.savePageBitMask(buffer, freePagesBitSet);
-
-                break;
-            }
-        }
-        return freeRowId;
     }
 
 }

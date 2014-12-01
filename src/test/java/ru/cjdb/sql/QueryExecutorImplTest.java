@@ -8,10 +8,17 @@ import org.junit.Before;
 import org.junit.Test;
 import ru.cjdb.CjDbModule;
 import ru.cjdb.printer.ConsoleResultPrinter;
+import ru.cjdb.scheme.dto.Index;
+import ru.cjdb.scheme.dto.Order;
 import ru.cjdb.scheme.types.Types;
+import ru.cjdb.sql.cursor.Cursor;
 import ru.cjdb.sql.expressions.ColumnValueExpr;
 import ru.cjdb.sql.expressions.ValueExpression;
 import ru.cjdb.sql.expressions.conditions.Comparison;
+import ru.cjdb.sql.parser.QueryParser;
+import ru.cjdb.sql.parser.QueryParserModule;
+import ru.cjdb.sql.queries.Query;
+import ru.cjdb.sql.queries.ddl.CreateIndexQuery;
 import ru.cjdb.sql.queries.ddl.CreateTableQuery;
 import ru.cjdb.sql.queries.dml.InsertQuery;
 import ru.cjdb.sql.queries.dml.SelectQuery;
@@ -22,7 +29,11 @@ import ru.cjdb.testutils.TestUtils;
 
 import javax.inject.Inject;
 
+import java.util.Arrays;
+
 import static java.util.Arrays.asList;
+import static org.junit.Assert.assertEquals;
+import static ru.cjdb.scheme.dto.Index.IndexType;
 import static ru.cjdb.sql.expressions.conditions.Comparison.BinOperator;
 import static ru.cjdb.sql.expressions.conditions.Comparison.BinOperator.GREATER;
 import static ru.cjdb.sql.queries.ddl.CreateTableQuery.ColumnDefinition;
@@ -31,6 +42,8 @@ public class QueryExecutorImplTest {
 
     @Inject
     QueryExecutor queryExecutor;
+    @Inject
+    QueryParser queryParser;
 
     @Before
     public void setup() {
@@ -52,7 +65,7 @@ public class QueryExecutorImplTest {
 
         Assert.assertTrue(queryResult.hasResult());
 
-        Assert.assertEquals(2, queryResult.getCursor().nextRow().getAt(0));
+        assertEquals(2, queryResult.getCursor().nextRow().getAt(0));
     }
 
     @Test
@@ -82,20 +95,20 @@ public class QueryExecutorImplTest {
         SelectQuery selectQuery = new SelectQuery(tableName, asList("test1", "test2"));
         QueryResult queryResult = queryExecutor.execute(selectQuery);
 
-        
+
         Assert.assertTrue(queryResult.hasResult());
 
         Row row1 = queryResult.getCursor().nextRow();
-        Assert.assertEquals(2, row1.getAt(0));
-        Assert.assertEquals(2, row1.getAt(1));
+        assertEquals(2, row1.getAt(0));
+        assertEquals(2, row1.getAt(1));
 
         Row row2 = queryResult.getCursor().nextRow();
-        Assert.assertEquals(2, row2.getAt(0));
-        Assert.assertEquals(2, row2.getAt(1));
+        assertEquals(2, row2.getAt(0));
+        assertEquals(2, row2.getAt(1));
 
         Row row3 = queryResult.getCursor().nextRow();
-        Assert.assertEquals(3, row3.getAt(0));
-        Assert.assertEquals(3, row3.getAt(1));
+        assertEquals(3, row3.getAt(0));
+        assertEquals(3, row3.getAt(1));
     }
 
 
@@ -117,7 +130,26 @@ public class QueryExecutorImplTest {
 
         Assert.assertTrue(queryResult.hasResult());
 
-        Assert.assertEquals(2, queryResult.getCursor().nextRow().getAt(0));
+        assertEquals(2, queryResult.getCursor().nextRow().getAt(0));
+    }
+
+    @Test
+    public void testHashIndexWhere() {
+        String tableName = TestUtils.createRandomName();
+        exec("create table %s (test1 INT)", tableName);
+
+        queryExecutor.execute(new CreateIndexQuery(TestUtils.createRandomName(),
+                tableName, false, IndexType.HASH, Arrays.asList(new Index.IndexColumnDef("test1", Order.ASC))
+        ));
+
+        for (int i = 0; i < 10; i++) {
+            exec("insert into %s values(%s)", tableName, i % 3);
+        }
+
+        Cursor cursor = exec("select * from %s where test1=1", tableName).getCursor();
+        assertEquals(1, cursor.nextRow().getAt(0));
+        assertEquals(1, cursor.nextRow().getAt(0));
+        assertEquals(1, cursor.nextRow().getAt(0));
     }
 
     @Test
@@ -143,10 +175,10 @@ public class QueryExecutorImplTest {
         Assert.assertTrue(queryResult.hasResult());
 
         Row row1 = queryResult.getCursor().nextRow();
-        Assert.assertEquals(3, row1.getAt(0));
+        assertEquals(3, row1.getAt(0));
 
         Row row2 = queryResult.getCursor().nextRow();
-        Assert.assertEquals(4, row2.getAt(0));
+        assertEquals(4, row2.getAt(0));
     }
 
     @Test
@@ -168,10 +200,10 @@ public class QueryExecutorImplTest {
         SelectQuery selectQuery = new SelectQuery(tableName, asList("test"));
         QueryResult queryResult = queryExecutor.execute(selectQuery);
 
-        
+
         Assert.assertTrue(queryResult.hasResult());
         for (int i = 0; i < count; i++) {
-            Assert.assertEquals(i, queryResult.getCursor().nextRow().getAt(0));
+            assertEquals(i, queryResult.getCursor().nextRow().getAt(0));
         }
     }
 
@@ -217,13 +249,13 @@ public class QueryExecutorImplTest {
         Assert.assertTrue(queryResult.hasResult());
 
         Row row1 = queryResult.getCursor().nextRow();
-        Assert.assertEquals(row1.getColumnCount(), 2);
-        Assert.assertEquals(row1.getAt(0), "a");
-        Assert.assertEquals(row1.getAt(1), "abcdefghij");
+        assertEquals(row1.getColumnCount(), 2);
+        assertEquals(row1.getAt(0), "a");
+        assertEquals(row1.getAt(1), "abcdefghij");
 
         Row row2 = queryResult.getCursor().nextRow();
-        Assert.assertEquals(row2.getAt(0), "k");
-        Assert.assertEquals(row2.getAt(1), "klmnopqrst");
+        assertEquals(row2.getAt(0), "k");
+        assertEquals(row2.getAt(1), "klmnopqrst");
     }
 
     @Test
@@ -245,13 +277,13 @@ public class QueryExecutorImplTest {
         Assert.assertTrue(queryResult.hasResult());
 
         Row row1 = queryResult.getCursor().nextRow();
-        Assert.assertEquals(row1.getColumnCount(), 2);
-        Assert.assertEquals(row1.getAt(0), 1.0);
-        Assert.assertEquals(row1.getAt(1), 3.14);
+        assertEquals(row1.getColumnCount(), 2);
+        assertEquals(row1.getAt(0), 1.0);
+        assertEquals(row1.getAt(1), 3.14);
 
         Row row2 = queryResult.getCursor().nextRow();
-        Assert.assertEquals(row2.getAt(0), 2.0);
-        Assert.assertEquals(row2.getAt(1), 2.718281828459045);
+        assertEquals(row2.getAt(0), 2.0);
+        assertEquals(row2.getAt(1), 2.718281828459045);
     }
 
     @Test
@@ -275,17 +307,23 @@ public class QueryExecutorImplTest {
 
 //        Assert.assertEquals(queryResult.getCursor().getRowCount(), 2);
         Row row1 = queryResult.getCursor().nextRow();
-        Assert.assertEquals(row1.getColumnCount(), 2);
+        assertEquals(row1.getColumnCount(), 2);
 
-        Assert.assertEquals(row1.getAt(0), 1);
-        Assert.assertEquals(row1.getAt(1), 2);
+        assertEquals(row1.getAt(0), 1);
+        assertEquals(row1.getAt(1), 2);
 
         Row row2 = queryResult.getCursor().nextRow();
-        Assert.assertEquals(row2.getAt(0), 3);
-        Assert.assertEquals(row2.getAt(1), 4);
+        assertEquals(row2.getAt(0), 3);
+        assertEquals(row2.getAt(1), 4);
     }
 
-    @Module(injects = QueryExecutorImplTest.class, includes = CjDbModule.class)
+    private QueryResult exec(String sql, Object... params) {
+        String req = String.format(sql, params);
+        Query query = queryParser.parseQuery(req);
+        return queryExecutor.execute(query);
+    }
+
+    @Module(injects = QueryExecutorImplTest.class, includes = {CjDbModule.class, QueryParserModule.class})
     public static final class QueryExecutorImplTestModule {
     }
 }

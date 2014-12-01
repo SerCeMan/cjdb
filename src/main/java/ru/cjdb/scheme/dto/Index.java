@@ -1,8 +1,11 @@
 package ru.cjdb.scheme.dto;
 
+import ru.cjdb.scheme.dto.xml.IndexTypeAdapter;
+
 import javax.xml.bind.annotation.XmlAttribute;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -15,13 +18,16 @@ import java.util.Objects;
  */
 @XmlRootElement(name = "Index")
 public class Index {
-
-    @XmlAttribute(name = "unique")
-    private boolean unique;
     @XmlAttribute(name = "name")
     private String name;
     @XmlAttribute(name = "table")
     private String table;
+    @XmlAttribute(name = "unique")
+    private boolean unique;
+    @XmlAttribute(name = "type")
+    private IndexType type;
+    @XmlAttribute(name = "buckets")
+    private int bucketCount;
     @XmlElement(name = "column")
     private List<IndexColumnDef> columns = new ArrayList<>();
 
@@ -29,16 +35,46 @@ public class Index {
     Index() {
     }
 
-    public Index(String name, String table, boolean unique, List<IndexColumnDef> columns) {
+    public Index(String name, String table, boolean unique, IndexType type, List<IndexColumnDef> columns) {
         this.unique = unique;
         this.name = name;
         this.table = table;
+        this.type = type;
         this.columns = columns;
+        this.bucketCount = 20;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getTable() {
+        return table;
+    }
+
+    public boolean isUnique() {
+        return unique;
+    }
+
+    public List<IndexColumnDef> getColumns() {
+        return columns;
+    }
+
+    public int getBucketCount() {
+        return bucketCount;
+    }
+
+    public IndexType getType() {
+        return type;
+    }
+
+    public String getFileName(int bucket) {
+        return getName() + "_" + bucket;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(name, table, unique, columns);
+        return Objects.hash(name, table, type, unique, columns);
     }
 
     @Override
@@ -54,8 +90,15 @@ public class Index {
         return unique == index.unique &&
                 columns.equals(index.columns) &&
                 name.equals(index.name) &&
+                type.equals(index.type) &&
                 table.equals(index.table);
 
+    }
+
+    @XmlJavaTypeAdapter(IndexTypeAdapter.class)
+    public static enum IndexType {
+        HASH,
+        BTREE
     }
 
     public static class IndexColumnDef {
@@ -71,6 +114,14 @@ public class Index {
         public IndexColumnDef(String name, Order order) {
             this.name = name;
             this.order = order;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public Order getOrder() {
+            return order;
         }
 
         @Override

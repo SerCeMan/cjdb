@@ -43,4 +43,29 @@ public class DiskPageUtils {
         }
         return false;
     }
+
+    public static int findFreeRowIdAndSetAsBusy(int rowCount, int metaDataSize, ByteBuffer buffer) {
+        int freeRowId = -1;
+        BitSet freePagesBitSet = getPageBitMask(metaDataSize, buffer);
+        for (int i = 0; i < rowCount; i++) {
+            boolean busy = freePagesBitSet.get(i);
+            if (!busy) {
+                // нашли свободную страничку
+                freeRowId = i;
+                // Пишем ее как занятую
+                freePagesBitSet.set(freeRowId, true);
+                savePageBitMask(buffer, freePagesBitSet);
+
+                break;
+            }
+        }
+        return freeRowId;
+    }
+
+    public static int calculateFreeRowOffset(ByteBuffer buffer, int bytesPerRow) {
+        int rowCount = calculateRowCount(bytesPerRow);
+        int metaDataSize = metadataSize(bytesPerRow);
+        int freeRowId = findFreeRowIdAndSetAsBusy(rowCount, metaDataSize, buffer);
+        return metaDataSize + freeRowId * bytesPerRow;
+    }
 }

@@ -28,7 +28,8 @@ public class CreateIndexQueryHandler extends RegisterableQueryHandler<CreateInde
 
     @Override
     public QueryResult execute(CreateIndexQuery query) {
-        Index index = new Index(query.getName(), query.getTable(), query.isUnique(), query.getIndexColDef());
+        Index index = new Index(query.getName(), query.getTable(), query.isUnique(),
+                query.getIndexType(), query.getIndexColDef());
         metainfoService.addIndex(index);
         return OkQueryResult.INSTANCE;
     }

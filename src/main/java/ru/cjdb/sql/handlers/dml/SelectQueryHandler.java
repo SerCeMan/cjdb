@@ -3,10 +3,16 @@ package ru.cjdb.sql.handlers.dml;
 import ru.cjdb.config.ConfigStorage;
 import ru.cjdb.scheme.MetainfoService;
 import ru.cjdb.scheme.dto.Column;
+import ru.cjdb.scheme.dto.Index;
 import ru.cjdb.scheme.dto.Table;
-import ru.cjdb.scheme.types.Type;
 import ru.cjdb.sql.cursor.Cursor;
+import ru.cjdb.sql.cursor.FullScanCursor;
+import ru.cjdb.sql.cursor.HashIndexCursor;
 import ru.cjdb.sql.expressions.BooleanExpression;
+import ru.cjdb.sql.expressions.ColumnValueExpr;
+import ru.cjdb.sql.expressions.Expression;
+import ru.cjdb.sql.expressions.ValueExpression;
+import ru.cjdb.sql.expressions.conditions.Comparison;
 import ru.cjdb.sql.handlers.RegisterableQueryHandler;
 import ru.cjdb.sql.queries.dml.SelectQuery;
 import ru.cjdb.sql.result.QueryResult;
@@ -17,6 +23,7 @@ import ru.cjdb.storage.fs.DiskManagerFactory;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -44,7 +51,6 @@ public class SelectQueryHandler extends RegisterableQueryHandler<SelectQuery> {
         int bytesPerRow = metainfoService.bytesPerRow(table);
 
         DiskManager diskManager = diskManagerFactory.get(table.getName());
-        List<Type> types = metainfoService.getColumnTypes(table);
 
         List<Column> columns = table.getColumns()
                 .stream()
@@ -52,7 +58,50 @@ public class SelectQueryHandler extends RegisterableQueryHandler<SelectQuery> {
                 .collect(Collectors.toList());
         BooleanExpression condition = query.getCondition();
 
-        Cursor cursor = new Cursor(table, columns, condition, bytesPerRow, diskManager, types);
+        Cursor cursor = null;
+        List<Index> indexes = metainfoService.getIndexes(table);
+        if (!indexes.isEmpty()) {
+            cursor = tryCreateIndexCursor(query, table, bytesPerRow, diskManager, columns, condition, indexes);
+        }
+
+        if (cursor == null) {
+            cursor = new FullScanCursor(table.getColumns(), columns, condition, bytesPerRow, diskManager);
+        }
         return new SelectQueryResult(cursor);
+    }
+
+    /**
+     * Адовая функция, проверяет значение, если это name=value, то пытается создать HashIndex
+     */
+    private Cursor tryCreateIndexCursor(SelectQuery query, Table table, int bytesPerRow, DiskManager diskManager,
+                                        List<Column> columns, BooleanExpression condition, List<Index> indexes) {
+        if (query.getCondition() instanceof Comparison) {
+            Comparison comparison = (Comparison) query.getCondition();
+            Expression left = comparison.getLeft();
+            Expression right = comparison.getRight();
+            String colName = null;
+            Object value = null;
+            if (left instanceof ColumnValueExpr && right instanceof ValueExpression) {
+                colName = ((ColumnValueExpr) left).getName();
+                value = right.getValue(null);
+            }
+            if (right instanceof ColumnValueExpr && left instanceof ValueExpression) {
+                colName = ((ColumnValueExpr) right).getName();
+                value = left.getValue(null);
+            }
+            String columnName = colName;
+            Optional<Index> idx = indexes.stream()
+                    .filter(index -> index.getColumns()
+                            .stream()
+                            .filter(colDef -> colDef.getName().equals(columnName)).findAny().isPresent())
+                    .findAny();
+            if (idx.isPresent()) {
+                Column column = table.getColumns().stream().filter(col -> col.getName().equals(columnName)).findAny().get();
+                int hash = column.getType().valueOf(value).hashCode();
+                return new HashIndexCursor(diskManagerFactory, table.getColumns(), columns, condition,
+                        bytesPerRow, diskManager, idx.get(), hash);
+            }
+        }
+        return null;
     }
 }

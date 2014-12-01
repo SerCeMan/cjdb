@@ -23,9 +23,9 @@ import java.util.Scanner;
 public class CjDatabase {
     private static final Logger LOG = LoggerFactory.getLogger(CjDatabase.class);
 
-    private QueryParser queryParser;
-    private QueryExecutor queryExecutor;
-    private ResultPrinter printer;
+    private final QueryParser queryParser;
+    private final QueryExecutor queryExecutor;
+    private final ResultPrinter printer;
 
     @Inject
     public CjDatabase(QueryParser queryParser, QueryExecutor queryExecutor, ResultPrinter printer) {

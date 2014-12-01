@@ -75,6 +75,7 @@ class DiskManagerImpl implements DiskManager {
     /**
      * Возвратить свободную для записи страницу
      */
+    @Override
     public DiskPage getFreePage() {
         while (freePageId != -1) {
             DiskPage page = getPage(freePageId);
@@ -96,6 +97,7 @@ class DiskManagerImpl implements DiskManager {
     /**
      * Сбрасывает дисковый кэш на диск
      */
+    @Override
     public void flush() {
         pageCache.values()
                 .stream()
@@ -110,6 +112,7 @@ class DiskManagerImpl implements DiskManager {
     /**
      * Сбрасывает конкетную страничку на диск
      */
+    @Override
     public void flush(DiskPage page) {
         if (page.isDirty()) {
             byteBuffer.position(calculateOffset(page.getId()));

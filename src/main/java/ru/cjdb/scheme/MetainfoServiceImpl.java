@@ -7,7 +7,6 @@ import ru.cjdb.scheme.dto.Table;
 import ru.cjdb.scheme.storage.MetaStorage;
 import ru.cjdb.scheme.types.Type;
 
-import javax.inject.Singleton;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -59,5 +58,12 @@ public class MetainfoServiceImpl implements MetainfoService {
     public void addIndex(Index index) {
         metainfo.addIndexes(index);
         metaStorage.saveMetainfo(metainfo);
+    }
+
+    @Override
+    public List<Index> getIndexes(Table table) {
+        return metainfo.getIndexes().stream()
+                .filter(inx -> inx.getTable().equals(table.getName()))
+                .collect(Collectors.toList());
     }
 }

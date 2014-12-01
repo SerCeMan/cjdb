@@ -43,4 +43,21 @@ public class DiskManagerFactory {
         }
         return managers.get(tableName);
     }
+
+    //TODO Dirty hack, bytesPerFow
+    public DiskManager getForIndex(String tableName) {
+        DiskManager manager = managers.get(tableName);
+        if (manager == null) {
+            synchronized (this) {
+                manager = managers.get(tableName);
+                if (manager == null) {
+                    int bytesPerRow = 2 * Integer.BYTES;
+                    manager = new DiskManagerImpl(configStorage.getRootPath() + tableName, tableName, bytesPerRow, pageCache);
+                    managers.put(tableName, manager);
+                    return manager;
+                }
+            }
+        }
+        return managers.get(tableName);
+    }
 }

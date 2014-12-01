@@ -1,5 +1,7 @@
 package ru.cjdb.scheme.dto;
 
+import ru.cjdb.scheme.dto.xml.OrderAdapter;
+
 import javax.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 
 /**

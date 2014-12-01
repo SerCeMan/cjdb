@@ -6,6 +6,7 @@ import ru.cjdb.scheme.dto.Column;
 import ru.cjdb.scheme.dto.Table;
 import ru.cjdb.scheme.types.Type;
 import ru.cjdb.sql.cursor.Cursor;
+import ru.cjdb.sql.cursor.FullScanCursor;
 import ru.cjdb.sql.expressions.BooleanExpression;
 import ru.cjdb.sql.handlers.RegisterableQueryHandler;
 import ru.cjdb.sql.queries.dml.UpdateQuery;
@@ -48,7 +49,6 @@ public class UpdateQueryHandler extends RegisterableQueryHandler<UpdateQuery> {
         int metaDataSize = DiskPageUtils.metadataSize(bytesPerRow);
 
         DiskManager diskManager = diskManagerFactory.get(table.getName());
-        List<Type> types = metainfoService.getColumnTypes(table);
 
         List<Column> columns = table.getColumns()
                 .stream()
@@ -56,7 +56,7 @@ public class UpdateQueryHandler extends RegisterableQueryHandler<UpdateQuery> {
                 .collect(Collectors.toList());
         BooleanExpression condition = query.getCondition();
 
-        Cursor cursor = new Cursor(table, columns, condition, bytesPerRow, diskManager, types);
+        Cursor cursor = new FullScanCursor(table.getColumns(), columns, condition, bytesPerRow, diskManager);
         int rowsAffected = 0;
         while(cursor.nextRow() != null) {
             DiskPage page = diskManager.getPage(cursor.currentPageId());

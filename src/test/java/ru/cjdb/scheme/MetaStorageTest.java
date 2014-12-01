@@ -1,6 +1,5 @@
 package ru.cjdb.scheme;
 
-import org.mockito.Mockito;
 import ru.cjdb.config.ConfigModule;
 import ru.cjdb.config.ConfigStorage;
 import dagger.Module;
@@ -13,14 +12,15 @@ import ru.cjdb.scheme.dto.*;
 import ru.cjdb.scheme.storage.MetaStorage;
 import ru.cjdb.scheme.storage.MetaStorageImpl;
 import ru.cjdb.scheme.types.Types;
+import ru.cjdb.testutils.TestUtils;
 
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.io.File;
-import java.util.Arrays;
 
 import static java.util.Arrays.asList;
 import static ru.cjdb.scheme.dto.Index.IndexColumnDef;
+import static ru.cjdb.scheme.dto.Index.IndexType;
 
 public class MetaStorageTest {
     @Inject
@@ -41,6 +41,7 @@ public class MetaStorageTest {
                 throw new RuntimeException("Test directory not created");
             }
         }
+        metaStorage.saveMetainfo(new Metainfo());
     }
 
     @Test
@@ -48,10 +49,11 @@ public class MetaStorageTest {
         Table table = new Table("test_table");
         table.addColumn(new Column("test", Types.INT));
         metainfoService.addTable(table);
-        Index index = new Index("1", "2", false, asList(new IndexColumnDef("test", Order.ASC)));
+        String idxName = TestUtils.createRandomName();
+        Index index = new Index(idxName, "2", false, IndexType.HASH, asList(new IndexColumnDef("test", Order.ASC)));
         metainfoService.addIndex(index);
 
-        Assert.assertEquals(metaStorage.getMetainfo().getIndexes().get(0), index);
+        Assert.assertTrue(metaStorage.getMetainfo().getIndexes().contains(index));
     }
 
     @Test

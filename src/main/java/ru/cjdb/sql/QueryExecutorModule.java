@@ -8,6 +8,7 @@ import ru.cjdb.sql.handlers.ddl.CreateTableQueryHandler;
 import ru.cjdb.sql.handlers.dml.InsertQueryHandler;
 import ru.cjdb.sql.handlers.dml.SelectQueryHandler;
 import ru.cjdb.sql.handlers.dml.UpdateQueryHandler;
+import ru.cjdb.sql.indexes.IndexModule;
 import ru.cjdb.sql.queries.ddl.CreateIndexQuery;
 
 import javax.inject.Singleton;
@@ -18,7 +19,7 @@ import javax.inject.Singleton;
  * @author Sergey Tselovalnikov
  * @since 29.09.14
  */
-@Module(injects = QueryExecutor.class, includes = {MetaStorageModule.class})
+@Module(injects = QueryExecutor.class, includes = {MetaStorageModule.class, IndexModule.class})
 public class QueryExecutorModule {
     @Provides
     @Singleton

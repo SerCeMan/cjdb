@@ -22,4 +22,6 @@ public interface MetainfoService {
     List<Type> getColumnTypes(Table table);
 
     void addIndex(Index index);
+
+    List<Index> getIndexes(Table table);
 }
