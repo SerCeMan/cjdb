@@ -30,6 +30,7 @@ import ru.cjdb.testutils.TestUtils;
 import javax.inject.Inject;
 
 import java.util.Arrays;
+import java.util.concurrent.ThreadLocalRandom;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
@@ -38,6 +39,7 @@ import static ru.cjdb.scheme.dto.Index.IndexType;
 import static ru.cjdb.sql.expressions.conditions.Comparison.BinOperator;
 import static ru.cjdb.sql.expressions.conditions.Comparison.BinOperator.GREATER;
 import static ru.cjdb.sql.queries.ddl.CreateTableQuery.ColumnDefinition;
+import static ru.cjdb.testutils.TestUtils.assertRow;
 
 public class QueryExecutorImplTest {
 
@@ -164,15 +166,11 @@ public class QueryExecutorImplTest {
         exec("insert into %s values(%s, %s)", tableName, 3, 3);
         exec("insert into %s values(%s, %s)", tableName, 4, 4);
 
-        QueryResult queryResult = exec("select test2 from %s where test2<%s", tableName, 3);
+        Cursor cursor = exec("select test1,test2 from %s where test2<%s", tableName, 3).getCursor();
 
-        Row row1 = queryResult.getCursor().nextRow();
-        assertEquals(1, row1.getAt(0));
-
-        Row row2 = queryResult.getCursor().nextRow();
-        assertEquals(2, row2.getAt(0));
-
-        assertTrue(queryResult.getCursor().nextRow() == null);
+        assertRow(cursor, 1, 1);
+        assertRow(cursor, 2, 2);
+        assertTrue(cursor.nextRow() == null);
     }
 
     @Test
@@ -193,16 +191,11 @@ public class QueryExecutorImplTest {
                         new ValueExpression("2"),
                         GREATER
                 ));
-        QueryResult queryResult = queryExecutor.execute(selectQuery);
+        Cursor cursor = queryExecutor.execute(selectQuery).getCursor();
 
-        Assert.assertTrue(queryResult.hasResult());
-
-        Row row1 = queryResult.getCursor().nextRow();
-        assertEquals(3, row1.getAt(0));
-
-        Row row2 = queryResult.getCursor().nextRow();
-        assertEquals(4, row2.getAt(0));
-        assertTrue(queryResult.getCursor().nextRow() == null);
+        assertRow(cursor, 3);
+        assertRow(cursor, 4);
+        assertTrue(cursor.nextRow() == null);
     }
 
     @Test
@@ -346,6 +339,44 @@ public class QueryExecutorImplTest {
         Query query = queryParser.parseQuery(req);
         return queryExecutor.execute(query);
     }
+
+//    @Test
+    public void indexSimplePerfTest() {
+        // use JMH, i know, i know, but 4 second is not nanoseconds
+        String tableName = TestUtils.createRandomName();
+
+        exec("create table %s (test1 INT, test2 VARCHAR(500))", tableName);
+
+        queryExecutor.execute(new CreateIndexQuery(TestUtils.createRandomName(),
+                tableName, false, IndexType.HASH, Arrays.asList(new Index.IndexColumnDef("test1", Order.ASC))
+        ));
+
+        long start = System.currentTimeMillis();
+
+        int count = 10_000;
+        ThreadLocalRandom tlr = ThreadLocalRandom.current();
+        int searched = 3;
+        int expect = 0;
+        for (int i = 0; i < count; i++) {
+            int val = tlr.nextInt(count / 10);
+            if (val == searched) {
+                expect++;
+            }
+            exec("insert into %s values(%s, '%s')", tableName, val, "ok");
+        }
+        Cursor cursor = exec("select test1,test2 from %s where test1=%s", tableName, searched).getCursor();
+
+        int actual = 0;
+        while (cursor.nextRow() != null) {
+            actual++;
+        }
+
+        long end = System.currentTimeMillis();
+        System.out.println("time = " + (end - start) + "ms");
+
+        assertEquals(expect, actual);
+    }
+
 
     @Module(injects = QueryExecutorImplTest.class, includes = {CjDbModule.class, QueryParserModule.class})
     public static final class QueryExecutorImplTestModule {
