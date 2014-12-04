@@ -21,6 +21,7 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 /**
@@ -57,8 +58,8 @@ public class UpdateQueryHandler extends RegisterableQueryHandler<UpdateQuery> {
         BooleanExpression condition = query.getCondition();
 
         Cursor cursor = new FullScanCursor(table.getColumns(), columns, condition, bytesPerRow, diskManager);
-        int rowsAffected = 0;
-        while(cursor.nextRow() != null) {
+        AtomicInteger rowsAffected = new AtomicInteger(0);
+        cursor.forEach(row -> {
             DiskPage page = diskManager.getPage(cursor.currentPageId());
             ByteBuffer buffer = ByteBuffer.wrap(page.getData());
 
@@ -73,8 +74,8 @@ public class UpdateQueryHandler extends RegisterableQueryHandler<UpdateQuery> {
                     buffer.position(buffer.position() + type.bytes());
                 }
             }
-            rowsAffected++;
-        }
-        return new InsertQueryResult(rowsAffected);
+            rowsAffected.incrementAndGet();
+        });
+        return new InsertQueryResult(rowsAffected.intValue());
     }
 }

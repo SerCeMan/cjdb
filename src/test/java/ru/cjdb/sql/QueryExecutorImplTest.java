@@ -101,17 +101,10 @@ public class QueryExecutorImplTest {
 
         Assert.assertTrue(queryResult.hasResult());
 
-        Row row1 = queryResult.getCursor().nextRow();
-        assertEquals(2, row1.getAt(0));
-        assertEquals(2, row1.getAt(1));
-
-        Row row2 = queryResult.getCursor().nextRow();
-        assertEquals(2, row2.getAt(0));
-        assertEquals(2, row2.getAt(1));
-
-        Row row3 = queryResult.getCursor().nextRow();
-        assertEquals(3, row3.getAt(0));
-        assertEquals(3, row3.getAt(1));
+        Cursor cursor = queryResult.getCursor();
+        assertRow(cursor, 2, 2);
+        assertRow(cursor, 2, 2);
+        assertRow(cursor, 3, 3);
     }
 
 
@@ -137,6 +130,25 @@ public class QueryExecutorImplTest {
     }
 
     @Test
+    public void testHashIndexWhereCreateLater() {
+        String tableName = TestUtils.createRandomName();
+        exec("create table %s (test1 INT)", tableName);
+
+        for (int i = 0; i < 10; i++) {
+            exec("insert into %s values(%s)", tableName, i % 3);
+        }
+
+        queryExecutor.execute(new CreateIndexQuery(TestUtils.createRandomName(),
+                tableName, false, IndexType.HASH, Arrays.asList(new Index.IndexColumnDef("test1", Order.ASC))
+        ));
+
+        Cursor cursor = exec("select * from %s where test1=1", tableName).getCursor();
+        assertRow(cursor, 1);
+        assertRow(cursor, 1);
+        assertRow(cursor, 1);
+    }
+
+    @Test
     public void testHashIndexWhere() {
         String tableName = TestUtils.createRandomName();
         exec("create table %s (test1 INT)", tableName);
@@ -150,9 +162,9 @@ public class QueryExecutorImplTest {
         }
 
         Cursor cursor = exec("select * from %s where test1=1", tableName).getCursor();
-        assertEquals(1, cursor.nextRow().getAt(0));
-        assertEquals(1, cursor.nextRow().getAt(0));
-        assertEquals(1, cursor.nextRow().getAt(0));
+        assertRow(cursor, 1);
+        assertRow(cursor, 1);
+        assertRow(cursor, 1);
     }
 
     @Test
@@ -270,9 +282,7 @@ public class QueryExecutorImplTest {
         assertEquals(row1.getAt(0), "a");
         assertEquals(row1.getAt(1), "abcdefghij");
 
-        Row row2 = queryResult.getCursor().nextRow();
-        assertEquals(row2.getAt(0), "k");
-        assertEquals(row2.getAt(1), "klmnopqrst");
+        assertRow(queryResult.getCursor(), "k", "klmnopqrst");
     }
 
     @Test
