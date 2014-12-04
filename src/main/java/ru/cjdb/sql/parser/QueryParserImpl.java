@@ -92,6 +92,8 @@ public class QueryParserImpl implements QueryParser {
             //TODO
         }
 
+
+
         if (parse instanceof Select) {
             PlainSelect selectBody = (PlainSelect) ((Select) parse).getSelectBody();
             String tableName = ((Table) selectBody.getFromItem()).getName();
