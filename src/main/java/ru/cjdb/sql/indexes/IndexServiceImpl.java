@@ -4,6 +4,9 @@ import ru.cjdb.scheme.MetainfoService;
 import ru.cjdb.scheme.dto.Column;
 import ru.cjdb.scheme.dto.Index;
 import ru.cjdb.scheme.dto.Table;
+import ru.cjdb.sql.cursor.Cursor;
+import ru.cjdb.sql.cursor.FullScanCursor;
+import ru.cjdb.sql.expressions.BooleanExpression;
 import ru.cjdb.storage.DiskPage;
 import ru.cjdb.storage.DiskPageUtils;
 import ru.cjdb.storage.fs.DiskManager;
@@ -20,9 +23,11 @@ import java.util.List;
 public class IndexServiceImpl implements IndexService {
 
     private final DiskManagerFactory diskManagerFactory;
+    private final MetainfoService metainfoService;
 
-    public IndexServiceImpl(DiskManagerFactory diskManagerFactory) {
+    public IndexServiceImpl(DiskManagerFactory diskManagerFactory, MetainfoService metainfoService) {
         this.diskManagerFactory = diskManagerFactory;
+        this.metainfoService = metainfoService;
     }
 
     @Override
@@ -51,5 +56,14 @@ public class IndexServiceImpl implements IndexService {
         buffer.putInt(rowId);
 
         freePage.setDirty(true);
+    }
+
+    @Override
+    public void createIndex(Table table, Index index) {
+        int bytesPerRow = metainfoService.bytesPerRow(table);
+        List<Column> columns = table.getColumns();
+        Cursor cursor = new FullScanCursor(columns, columns, BooleanExpression.TRUE_EXPRESSION,
+                bytesPerRow, diskManagerFactory.get(table.getName()));
+        cursor.forEach(row -> addRow(table, index, cursor.currentPageId(), cursor.currentRowId(), row.values()));
     }
 }

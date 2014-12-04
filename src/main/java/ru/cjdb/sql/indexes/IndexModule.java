@@ -13,7 +13,7 @@ public class IndexModule {
 
     @Provides
     @Singleton
-    public IndexService provideIndexService(DiskManagerFactory diskManagerFactory) {
-        return new IndexServiceImpl(diskManagerFactory);
+    public IndexService provideIndexService(DiskManagerFactory diskManagerFactory, MetainfoService metainfoService) {
+        return new IndexServiceImpl(diskManagerFactory, metainfoService);
     }
 }

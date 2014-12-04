@@ -22,13 +22,12 @@ public class ConsoleResultPrinter implements ResultPrinter {
                 System.out.format("Rows affected:%d\n",result.rowsAffected());
             }
         } else {
-            Row currentRow;
             Cursor resultCursor = result.getCursor();
             String format = format(resultCursor.types());
-            while ((currentRow = resultCursor.nextRow()) != null) {
+            resultCursor.forEach(currentRow -> {
                 System.out.format(format, currentRow.values());
                 System.out.println();
-            }
+            });
             System.out.println();
         }
     }

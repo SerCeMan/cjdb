@@ -2,7 +2,9 @@ package ru.cjdb.sql.handlers.ddl;
 
 import ru.cjdb.scheme.MetainfoService;
 import ru.cjdb.scheme.dto.Index;
+import ru.cjdb.scheme.dto.Table;
 import ru.cjdb.sql.handlers.RegisterableQueryHandler;
+import ru.cjdb.sql.indexes.IndexService;
 import ru.cjdb.sql.queries.ddl.CreateIndexQuery;
 import ru.cjdb.sql.result.QueryResult;
 import ru.cjdb.sql.result.impl.OkQueryResult;
@@ -21,6 +23,8 @@ public class CreateIndexQueryHandler extends RegisterableQueryHandler<CreateInde
 
     @Inject
     MetainfoService metainfoService;
+    @Inject
+    IndexService indexService;
 
     public CreateIndexQueryHandler() {
         super(CreateIndexQuery.class);
@@ -31,6 +35,8 @@ public class CreateIndexQueryHandler extends RegisterableQueryHandler<CreateInde
         Index index = new Index(query.getName(), query.getTable(), query.isUnique(),
                 query.getIndexType(), query.getIndexColDef());
         metainfoService.addIndex(index);
+        Table table = metainfoService.getTable(index.getTable());
+        indexService.createIndex(table, index);
         return OkQueryResult.INSTANCE;
     }
 }

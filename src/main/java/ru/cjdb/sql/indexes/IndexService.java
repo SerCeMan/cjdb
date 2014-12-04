@@ -11,4 +11,6 @@ import ru.cjdb.scheme.dto.Table;
  */
 public interface IndexService {
     void addRow(Table table, Index index, int id, int freeRowId, Object[] values);
+
+    void createIndex(Table table, Index index);
 }

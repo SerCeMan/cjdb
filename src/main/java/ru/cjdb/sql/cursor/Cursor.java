@@ -4,6 +4,7 @@ import ru.cjdb.scheme.types.Type;
 import ru.cjdb.sql.result.Row;
 
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * Курсор, пробегающийся по таблице и возвращающий результат
@@ -16,20 +17,27 @@ public interface Cursor {
     /**
      * Возвращает следующую строчку или null, если строки кончились
      */
-    public Row nextRow();
+    Row nextRow();
 
     /**
      * Тип возвращаемых колонок
      */
-    public List<Type> types();
+    List<Type> types();
 
     /**
      * Текущая обрабатываемая страница
      */
-    public int currentPageId();
+    int currentPageId();
 
     /**
      * ID текущей строки на странице
      */
-    public int currentRowId();
+    int currentRowId();
+
+    default void forEach(Consumer<? super Row> action) {
+        Row row;
+        while ((row = nextRow()) != null) {
+            action.accept(row);
+        }
+    }
 }
