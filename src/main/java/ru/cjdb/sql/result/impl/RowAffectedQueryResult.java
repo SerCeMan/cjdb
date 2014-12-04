@@ -4,14 +4,16 @@ import ru.cjdb.sql.cursor.Cursor;
 import ru.cjdb.sql.result.QueryResult;
 
 /**
+ * Результат UPDATE
+ *
  * @author Sergey Tselovalnikov
  * @since 01.12.14
  */
-public class InsertQueryResult implements QueryResult {
+public class RowAffectedQueryResult implements QueryResult {
 
     private final int count;
 
-    public InsertQueryResult(int count) {
+    public RowAffectedQueryResult(int count) {
         this.count = count;
     }
 

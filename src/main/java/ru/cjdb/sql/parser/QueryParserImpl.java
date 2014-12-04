@@ -31,9 +31,12 @@ import ru.cjdb.sql.queries.Query;
 import ru.cjdb.sql.queries.ddl.CreateTableQuery;
 import ru.cjdb.sql.queries.dml.InsertQuery;
 import ru.cjdb.sql.queries.dml.SelectQuery;
+import ru.cjdb.sql.queries.dml.UpdateQuery;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static ru.cjdb.sql.expressions.conditions.Comparison.BinOperator;
@@ -86,6 +89,23 @@ public class QueryParserImpl implements QueryParser {
             //TODO
         }
         if (parse instanceof Update) {
+            Update upd = (Update) parse;
+            String tableName = upd.getTables().get(0).getName();
+            BooleanExpression where = parseWhere(tableName, upd.getWhere());
+            Map<String, Object> values = new HashMap<>();
+            for (int i = 0; i < upd.getColumns().size(); i++) {
+                Column column = upd.getColumns().get(i);
+                Expression expression = upd.getExpressions().get(i);
+                String columnName = column.getColumnName();
+                ru.cjdb.scheme.dto.Column tableColumn = metainfoService.getTable(tableName).getColumns()
+                        .stream()
+                        .filter(col -> col.getName().equals(columnName))
+                        .findAny()
+                        .orElseThrow(() -> new SqlParseException("Column " + columnName + " not found!"));
+
+                values.put(columnName, tableColumn.getType().valueOf(parseExpression(expression, tableName).getValue(null)));
+            }
+            return new UpdateQuery(tableName, values, where);
             //TODO
         }
         if (parse instanceof CreateIndex) {
@@ -114,17 +134,22 @@ public class QueryParserImpl implements QueryParser {
             }
 
 
-            BooleanExpression where = BooleanExpression.TRUE_EXPRESSION;
-            if (selectBody.getWhere() instanceof OldOracleJoinBinaryExpression) { // TODO >,<, etc...
-                OldOracleJoinBinaryExpression eq = (OldOracleJoinBinaryExpression) selectBody.getWhere();
-                ru.cjdb.sql.expressions.Expression exprLeft = parseExpression(eq.getLeftExpression(), tableName);
-                ru.cjdb.sql.expressions.Expression exprRight = parseExpression(eq.getRightExpression(), tableName);
-                BinOperator operator = getBinOperator(selectBody.getWhere());
-                where = new Comparison(exprLeft, exprRight, operator);
-            }
+            BooleanExpression where = parseWhere(tableName, selectBody.getWhere());
             return new SelectQuery(tableName, columns, where);
         }
         return new InsertQuery("test", 1);
+    }
+
+    private BooleanExpression parseWhere(String tableName, Expression wherepart) {
+        BooleanExpression where = BooleanExpression.TRUE_EXPRESSION;
+        if (wherepart instanceof OldOracleJoinBinaryExpression) {
+            OldOracleJoinBinaryExpression eq = (OldOracleJoinBinaryExpression) wherepart;
+            ru.cjdb.sql.expressions.Expression exprLeft = parseExpression(eq.getLeftExpression(), tableName);
+            ru.cjdb.sql.expressions.Expression exprRight = parseExpression(eq.getRightExpression(), tableName);
+            BinOperator operator = getBinOperator(wherepart);
+            where = new Comparison(exprLeft, exprRight, operator);
+        }
+        return where;
     }
 
     private BinOperator getBinOperator(Expression where) {

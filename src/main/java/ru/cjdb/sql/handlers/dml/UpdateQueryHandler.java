@@ -11,7 +11,7 @@ import ru.cjdb.sql.expressions.BooleanExpression;
 import ru.cjdb.sql.handlers.RegisterableQueryHandler;
 import ru.cjdb.sql.queries.dml.UpdateQuery;
 import ru.cjdb.sql.result.QueryResult;
-import ru.cjdb.sql.result.impl.InsertQueryResult;
+import ru.cjdb.sql.result.impl.RowAffectedQueryResult;
 import ru.cjdb.storage.DiskPage;
 import ru.cjdb.storage.DiskPageUtils;
 import ru.cjdb.storage.fs.DiskManager;
@@ -76,6 +76,6 @@ public class UpdateQueryHandler extends RegisterableQueryHandler<UpdateQuery> {
             }
             rowsAffected.incrementAndGet();
         });
-        return new InsertQueryResult(rowsAffected.intValue());
+        return new RowAffectedQueryResult(rowsAffected.intValue());
     }
 }

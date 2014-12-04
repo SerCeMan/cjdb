@@ -1,6 +1,5 @@
 package ru.cjdb.sql;
 
-import com.google.common.collect.ImmutableMap;
 import dagger.Module;
 import dagger.ObjectGraph;
 import org.junit.Assert;
@@ -22,13 +21,11 @@ import ru.cjdb.sql.queries.ddl.CreateIndexQuery;
 import ru.cjdb.sql.queries.ddl.CreateTableQuery;
 import ru.cjdb.sql.queries.dml.InsertQuery;
 import ru.cjdb.sql.queries.dml.SelectQuery;
-import ru.cjdb.sql.queries.dml.UpdateQuery;
 import ru.cjdb.sql.result.QueryResult;
 import ru.cjdb.sql.result.Row;
 import ru.cjdb.testutils.TestUtils;
 
 import javax.inject.Inject;
-
 import java.util.Arrays;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -36,7 +33,6 @@ import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static ru.cjdb.scheme.dto.Index.IndexType;
-import static ru.cjdb.sql.expressions.conditions.Comparison.BinOperator;
 import static ru.cjdb.sql.expressions.conditions.Comparison.BinOperator.GREATER;
 import static ru.cjdb.sql.queries.ddl.CreateTableQuery.ColumnDefinition;
 import static ru.cjdb.testutils.TestUtils.assertRow;
@@ -74,6 +70,7 @@ public class QueryExecutorImplTest {
     @Test
     public void testInsertThenUpdate() {
         String tableName = TestUtils.createRandomName();
+
         CreateTableQuery createTableQuery = new CreateTableQuery(tableName,
                 asList(
                         new ColumnDefinition("test1", Types.INT),
@@ -85,15 +82,7 @@ public class QueryExecutorImplTest {
         queryExecutor.execute(new InsertQuery(tableName, 2, 2));
         queryExecutor.execute(new InsertQuery(tableName, 3, 3));
 
-        UpdateQuery update = new UpdateQuery(tableName,
-                ImmutableMap.of("test1", 2, "test2", 2),
-                new Comparison(
-                        new ColumnValueExpr("test1", Types.INT),
-                        new ValueExpression("1"),
-                        BinOperator.EQUAL
-                ));
-
-        queryExecutor.execute(update);
+        exec("update %s set test1=2, test2=2 where test1=1", tableName);
 
         SelectQuery selectQuery = new SelectQuery(tableName, asList("test1", "test2"));
         QueryResult queryResult = queryExecutor.execute(selectQuery);

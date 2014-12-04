@@ -16,7 +16,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * Created by serce on 01.12.14.
+ * @author Sergey Tselovalnikov
+ * @since 05.12.14
  */
 public class FullScanCursor implements Cursor {
     private final List<Column> allColumns;

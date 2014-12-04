@@ -1,5 +1,6 @@
 package ru.cjdb.sql.parser;
 
+import com.google.common.collect.ImmutableMap;
 import ru.cjdb.config.ConfigModule;
 import dagger.Module;
 import dagger.ObjectGraph;
@@ -12,10 +13,14 @@ import ru.cjdb.scheme.MetainfoServiceImpl;
 import ru.cjdb.scheme.dto.Column;
 import ru.cjdb.scheme.dto.Table;
 import ru.cjdb.scheme.types.Types;
+import ru.cjdb.sql.expressions.ColumnValueExpr;
+import ru.cjdb.sql.expressions.ValueExpression;
+import ru.cjdb.sql.expressions.conditions.Comparison;
 import ru.cjdb.sql.queries.Query;
 import ru.cjdb.sql.queries.ddl.CreateTableQuery;
 import ru.cjdb.sql.queries.dml.InsertQuery;
 import ru.cjdb.sql.queries.dml.SelectQuery;
+import ru.cjdb.sql.queries.dml.UpdateQuery;
 import ru.cjdb.testutils.TestUtils;
 
 import javax.inject.Inject;
@@ -53,6 +58,33 @@ public class QueryParserImplTest {
         assertEquals(Arrays.asList("test"), select.getProjections());
     }
 
+    @Test
+    public void testParseSimpleUpdate() {
+        String tableName = TestUtils.createRandomName();
+        Table table = new Table(tableName);
+        table.addColumn(new Column("test1", Types.INT));
+        table.addColumn(new Column("test2", Types.varchar(20)));
+        metainfoService.addTable(table);
+
+        Query query = queryParser.parseQuery("update " + tableName + " set test1=1, test2='ok' where test1=2");
+
+        assertTrue(query instanceof UpdateQuery);
+        UpdateQuery update = (UpdateQuery) query;
+        assertEquals(tableName, update.getTable());
+        ImmutableMap<String, Object> map = ImmutableMap.<String, Object>builder()
+                .put("test1", 1)
+                .put("test2", "ok")
+                .build();
+        assertEquals(map, update.getValues());
+        assertTrue(update.getCondition() instanceof Comparison);
+        Comparison comp = (Comparison) update.getCondition();
+        ColumnValueExpr left = (ColumnValueExpr) comp.getLeft();
+        assertEquals("test1", left.getName());
+        assertEquals(Types.INT, left.getType());
+        ValueExpression right = (ValueExpression) comp.getRight();
+        assertEquals("2", right.getValue(null));
+    }
+
 
     @Test
     public void testParseSimpleInsert() {
@@ -63,9 +95,9 @@ public class QueryParserImplTest {
         InsertQuery insert = (InsertQuery) query;
 
         assertEquals(tableName, insert.getName());
-        assertEquals(1,insert.getValues()[0]);
-        assertEquals(2.0,insert.getValues()[1]);
-        assertEquals("hello",insert.getValues()[2]);
+        assertEquals(1, insert.getValues()[0]);
+        assertEquals(2.0, insert.getValues()[1]);
+        assertEquals("hello", insert.getValues()[2]);
     }
 
 
@@ -108,7 +140,7 @@ public class QueryParserImplTest {
     }
 
 
-    @Module(injects = QueryParserImplTest.class, includes = { ConfigModule.class, MetaStorageTest.MetaStorageTestModule.class})
+    @Module(injects = QueryParserImplTest.class, includes = {ConfigModule.class, MetaStorageTest.MetaStorageTestModule.class})
     public static final class QueryParserTestModule {
         @Provides
         @Singleton
