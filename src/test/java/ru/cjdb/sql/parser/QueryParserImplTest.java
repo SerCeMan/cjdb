@@ -18,6 +18,7 @@ import ru.cjdb.sql.expressions.ValueExpression;
 import ru.cjdb.sql.expressions.conditions.Comparison;
 import ru.cjdb.sql.queries.Query;
 import ru.cjdb.sql.queries.ddl.CreateTableQuery;
+import ru.cjdb.sql.queries.dml.DeleteQuery;
 import ru.cjdb.sql.queries.dml.InsertQuery;
 import ru.cjdb.sql.queries.dml.SelectQuery;
 import ru.cjdb.sql.queries.dml.UpdateQuery;
@@ -98,6 +99,28 @@ public class QueryParserImplTest {
         assertEquals(1, insert.getValues()[0]);
         assertEquals(2.0, insert.getValues()[1]);
         assertEquals("hello", insert.getValues()[2]);
+    }
+
+    @Test
+    public void testParseSimpleDelete() {
+        String tableName = TestUtils.createRandomName();
+        Table table = new Table(tableName);
+        table.addColumn(new Column("test1", Types.INT));
+        table.addColumn(new Column("test2", Types.varchar(20)));
+        metainfoService.addTable(table);
+        Query query = queryParser.parseQuery("delete from " + tableName + " where test1=2");
+
+        assertTrue(query instanceof DeleteQuery);
+        DeleteQuery delete = (DeleteQuery) query;
+
+        assertEquals(tableName, delete.getTable());
+        assertTrue(delete.getCondition() instanceof Comparison);
+        Comparison comp = (Comparison) delete.getCondition();
+        ColumnValueExpr left = (ColumnValueExpr) comp.getLeft();
+        assertEquals("test1", left.getName());
+        assertEquals(Types.INT, left.getType());
+        ValueExpression right = (ValueExpression) comp.getRight();
+        assertEquals("2", right.getValue(null));
     }
 
 

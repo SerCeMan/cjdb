@@ -14,6 +14,7 @@ import net.sf.jsqlparser.statement.create.index.CreateIndex;
 import net.sf.jsqlparser.statement.create.table.ColDataType;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
+import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.select.AllColumns;
 import net.sf.jsqlparser.statement.select.PlainSelect;
@@ -29,6 +30,7 @@ import ru.cjdb.sql.expressions.ValueExpression;
 import ru.cjdb.sql.expressions.conditions.Comparison;
 import ru.cjdb.sql.queries.Query;
 import ru.cjdb.sql.queries.ddl.CreateTableQuery;
+import ru.cjdb.sql.queries.dml.DeleteQuery;
 import ru.cjdb.sql.queries.dml.InsertQuery;
 import ru.cjdb.sql.queries.dml.SelectQuery;
 import ru.cjdb.sql.queries.dml.UpdateQuery;
@@ -110,6 +112,12 @@ public class QueryParserImpl implements QueryParser {
         }
         if (parse instanceof CreateIndex) {
             //TODO
+        }
+        if (parse instanceof Delete) {
+            Delete delete = (Delete)parse;
+            String tableName = delete.getTable().getName();
+            BooleanExpression where = parseWhere(tableName, delete.getWhere());
+            return new DeleteQuery(tableName, where);
         }
 
 

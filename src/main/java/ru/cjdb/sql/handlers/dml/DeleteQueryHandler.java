@@ -47,10 +47,7 @@ public class DeleteQueryHandler extends RegisterableQueryHandler<DeleteQuery> {
 
         DiskManager diskManager = diskManagerFactory.get(table.getName());
 
-        List<Column> columns = table.getColumns()
-                .stream()
-                .filter(column -> query.getValues().containsKey(column.getName()))
-                .collect(Collectors.toList());
+        List<Column> columns = table.getColumns();
         BooleanExpression condition = query.getCondition();
 
         Cursor cursor = new FullScanCursor(table.getColumns(), columns, condition, bytesPerRow, diskManager);
