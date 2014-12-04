@@ -174,6 +174,32 @@ public class QueryExecutorImplTest {
         assertTrue(cursor.nextRow() == null);
     }
 
+
+    @Test
+    public void testSimpleDelete() {
+        String tableName = TestUtils.createRandomName();
+
+        exec("create table %s (test1 INT, test2 INT)", tableName);
+
+        exec("insert into %s values(%s, %s)", tableName, 1, 1);
+        exec("insert into %s values(%s, %s)", tableName, 2, 2);
+        exec("insert into %s values(%s, %s)", tableName, 3, 3);
+        exec("insert into %s values(%s, %s)", tableName, 4, 4);
+
+        exec("delete from %s where test1>%s", tableName, 2);
+
+        exec("insert into %s values(%s, %s)", tableName, 5, 5);
+        exec("insert into %s values(%s, %s)", tableName, 6, 6);
+
+        Cursor cursor = exec("select test1,test2 from %s", tableName).getCursor();
+
+        assertRow(cursor, 1, 1);
+        assertRow(cursor, 2, 2);
+        assertRow(cursor, 5, 5);
+        assertRow(cursor, 6, 6);
+        assertTrue(cursor.nextRow() == null);
+    }
+
     @Test
     public void testSimpleWhere() {
         String tableName = TestUtils.createRandomName();

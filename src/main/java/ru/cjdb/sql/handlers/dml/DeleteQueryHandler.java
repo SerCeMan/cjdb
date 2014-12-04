@@ -17,6 +17,7 @@ import ru.cjdb.storage.fs.DiskManager;
 import ru.cjdb.storage.fs.DiskManagerFactory;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.nio.ByteBuffer;
 import java.util.BitSet;
 import java.util.List;
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 /**
  * Created by flire on 05.12.14.
  */
+@Singleton
 public class DeleteQueryHandler extends RegisterableQueryHandler<DeleteQuery> {
 
     @Inject

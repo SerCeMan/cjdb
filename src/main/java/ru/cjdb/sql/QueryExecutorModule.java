@@ -5,6 +5,7 @@ import dagger.Provides;
 import ru.cjdb.scheme.MetaStorageModule;
 import ru.cjdb.sql.handlers.ddl.CreateIndexQueryHandler;
 import ru.cjdb.sql.handlers.ddl.CreateTableQueryHandler;
+import ru.cjdb.sql.handlers.dml.DeleteQueryHandler;
 import ru.cjdb.sql.handlers.dml.InsertQueryHandler;
 import ru.cjdb.sql.handlers.dml.SelectQueryHandler;
 import ru.cjdb.sql.handlers.dml.UpdateQueryHandler;
@@ -28,7 +29,8 @@ public class QueryExecutorModule {
             SelectQueryHandler selectQueryHandler,
             UpdateQueryHandler updateQueryHandler,
             CreateTableQueryHandler createTableQueryHandler,
-            CreateIndexQueryHandler createIndexQueryHandler
+            CreateIndexQueryHandler createIndexQueryHandler,
+            DeleteQueryHandler deleteQueryHandler
     ) {
         QueryExecutorImpl queryExecutor = new QueryExecutorImpl();
         queryExecutor.registerHandlers(
@@ -36,7 +38,8 @@ public class QueryExecutorModule {
                 selectQueryHandler,
                 updateQueryHandler,
                 createTableQueryHandler,
-                createIndexQueryHandler
+                createIndexQueryHandler,
+                deleteQueryHandler
         );
         return queryExecutor;
 
