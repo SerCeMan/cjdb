@@ -14,6 +14,7 @@ import net.sf.jsqlparser.statement.create.index.CreateIndex;
 import net.sf.jsqlparser.statement.create.table.ColDataType;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
+import net.sf.jsqlparser.statement.create.table.Index;
 import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
 import net.sf.jsqlparser.statement.select.AllColumns;
@@ -22,6 +23,7 @@ import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.select.SelectExpressionItem;
 import net.sf.jsqlparser.statement.update.Update;
 import ru.cjdb.scheme.MetainfoService;
+import ru.cjdb.scheme.dto.Order;
 import ru.cjdb.scheme.types.Type;
 import ru.cjdb.scheme.types.Types;
 import ru.cjdb.sql.expressions.BooleanExpression;
@@ -29,18 +31,18 @@ import ru.cjdb.sql.expressions.ColumnValueExpr;
 import ru.cjdb.sql.expressions.ValueExpression;
 import ru.cjdb.sql.expressions.conditions.Comparison;
 import ru.cjdb.sql.queries.Query;
+import ru.cjdb.sql.queries.ddl.CreateIndexQuery;
 import ru.cjdb.sql.queries.ddl.CreateTableQuery;
 import ru.cjdb.sql.queries.dml.DeleteQuery;
 import ru.cjdb.sql.queries.dml.InsertQuery;
 import ru.cjdb.sql.queries.dml.SelectQuery;
 import ru.cjdb.sql.queries.dml.UpdateQuery;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
+import static ru.cjdb.scheme.dto.Index.IndexColumnDef;
+import static ru.cjdb.scheme.dto.Index.IndexType;
 import static ru.cjdb.sql.expressions.conditions.Comparison.BinOperator;
 
 /**
@@ -108,10 +110,16 @@ public class QueryParserImpl implements QueryParser {
                 values.put(columnName, tableColumn.getType().valueOf(parseExpression(expression, tableName).getValue(null)));
             }
             return new UpdateQuery(tableName, values, where);
-            //TODO
         }
         if (parse instanceof CreateIndex) {
-            //TODO
+            CreateIndex createIndex = (CreateIndex) parse;
+            String tableName = createIndex.getTable().getName();
+            Index index = createIndex.getIndex();
+            String idxName = index.getName();
+            List<IndexColumnDef> columns = index.getColumnsNames().stream()
+                    .map(col -> new IndexColumnDef(col, Order.ASC))
+                    .collect(Collectors.toList());
+            return new CreateIndexQuery(idxName, tableName, true, IndexType.HASH, columns);
         }
         if (parse instanceof Delete) {
             Delete delete = (Delete)parse;

@@ -11,12 +11,14 @@ import ru.cjdb.scheme.MetaStorageTest;
 import ru.cjdb.scheme.MetainfoService;
 import ru.cjdb.scheme.MetainfoServiceImpl;
 import ru.cjdb.scheme.dto.Column;
+import ru.cjdb.scheme.dto.Index;
 import ru.cjdb.scheme.dto.Table;
 import ru.cjdb.scheme.types.Types;
 import ru.cjdb.sql.expressions.ColumnValueExpr;
 import ru.cjdb.sql.expressions.ValueExpression;
 import ru.cjdb.sql.expressions.conditions.Comparison;
 import ru.cjdb.sql.queries.Query;
+import ru.cjdb.sql.queries.ddl.CreateIndexQuery;
 import ru.cjdb.sql.queries.ddl.CreateTableQuery;
 import ru.cjdb.sql.queries.dml.DeleteQuery;
 import ru.cjdb.sql.queries.dml.InsertQuery;
@@ -28,8 +30,10 @@ import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.util.Arrays;
 
+import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static ru.cjdb.scheme.dto.Index.IndexType;
 import static ru.cjdb.sql.queries.ddl.CreateTableQuery.ColumnDefinition;
 
 public class QueryParserImplTest {
@@ -56,8 +60,30 @@ public class QueryParserImplTest {
         assertTrue(query instanceof SelectQuery);
         SelectQuery select = (SelectQuery) query;
         assertEquals(tableName, select.getFrom());
-        assertEquals(Arrays.asList("test"), select.getProjections());
+        assertEquals(asList("test"), select.getProjections());
     }
+
+
+    @Test
+    public void testParseCreateIndex() {
+        String tableName = TestUtils.createRandomName();
+        Table table = new Table(tableName);
+        table.addColumn(new Column("test", Types.INT));
+        metainfoService.addTable(table);
+
+        String idxName = TestUtils.createRandomName();
+        //TODO проблема, парсер не парсит USING HASH
+        Query query = queryParser.parseQuery("create index  " +idxName + " on " + tableName + "(test)");
+
+        assertTrue(query instanceof CreateIndexQuery);
+        CreateIndexQuery idxQuery = (CreateIndexQuery) query;
+        assertEquals(idxName, idxQuery.getName());
+        assertEquals(tableName, idxQuery.getTable());
+        assertEquals("test", idxQuery.getIndexColDef().get(0).getName());
+        assertEquals(IndexType.HASH, idxQuery.getIndexType());
+    }
+
+
 
     @Test
     public void testParseSimpleUpdate() {
@@ -159,7 +185,7 @@ public class QueryParserImplTest {
         assertTrue(query instanceof SelectQuery);
         SelectQuery select = (SelectQuery) query;
         assertEquals(tableName, select.getFrom());
-        assertEquals(Arrays.asList("test"), select.getProjections());
+        assertEquals(asList("test"), select.getProjections());
     }
 
 
