@@ -14,6 +14,8 @@ public class SelectQuery implements Query {
     private String from;
     private List<String> projections;
     private BooleanExpression condition;
+    private String joinTable;
+    private BooleanExpression joinExpression;
 
     public SelectQuery() {
     }
@@ -36,7 +38,27 @@ public class SelectQuery implements Query {
         return projections;
     }
 
+    public String getJoinTable() {
+        return joinTable;
+    }
+
+    public void setJoinTable(String joinTable) {
+        this.joinTable = joinTable;
+    }
+
+    public BooleanExpression getJoinExpression() {
+        return joinExpression;
+    }
+
+    public void setJoinExpression(BooleanExpression joinExpression) {
+        this.joinExpression = joinExpression;
+    }
+
     public String getFrom() {
         return from;
+    }
+
+    public boolean hasJoin() {
+        return getJoinTable() != null;
     }
 }

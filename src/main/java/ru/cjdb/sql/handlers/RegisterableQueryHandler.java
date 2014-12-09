@@ -19,7 +19,7 @@ public abstract class RegisterableQueryHandler<T extends Query> implements Query
     }
 
     @Override
-    public Class<T> getQueryClass() {
+    public final Class<T> getQueryClass() {
         return queryClass;
     }
 }

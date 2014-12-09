@@ -17,10 +17,7 @@ import net.sf.jsqlparser.statement.create.table.CreateTable;
 import net.sf.jsqlparser.statement.create.table.Index;
 import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.insert.Insert;
-import net.sf.jsqlparser.statement.select.AllColumns;
-import net.sf.jsqlparser.statement.select.PlainSelect;
-import net.sf.jsqlparser.statement.select.Select;
-import net.sf.jsqlparser.statement.select.SelectExpressionItem;
+import net.sf.jsqlparser.statement.select.*;
 import net.sf.jsqlparser.statement.update.Update;
 import ru.cjdb.scheme.MetainfoService;
 import ru.cjdb.scheme.dto.Order;
@@ -41,6 +38,7 @@ import ru.cjdb.sql.queries.dml.UpdateQuery;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static java.util.Arrays.asList;
 import static ru.cjdb.scheme.dto.Index.IndexColumnDef;
 import static ru.cjdb.scheme.dto.Index.IndexType;
 import static ru.cjdb.sql.expressions.conditions.Comparison.BinOperator;
@@ -95,7 +93,7 @@ public class QueryParserImpl implements QueryParser {
         if (parse instanceof Update) {
             Update upd = (Update) parse;
             String tableName = upd.getTables().get(0).getName();
-            BooleanExpression where = parseWhere(tableName, upd.getWhere());
+            BooleanExpression where = parseWhere(upd.getWhere(), tableName);
             Map<String, Object> values = new HashMap<>();
             for (int i = 0; i < upd.getColumns().size(); i++) {
                 Column column = upd.getColumns().get(i);
@@ -124,7 +122,7 @@ public class QueryParserImpl implements QueryParser {
         if (parse instanceof Delete) {
             Delete delete = (Delete)parse;
             String tableName = delete.getTable().getName();
-            BooleanExpression where = parseWhere(tableName, delete.getWhere());
+            BooleanExpression where = parseWhere(delete.getWhere(), tableName);
             return new DeleteQuery(tableName, where);
         }
 
@@ -149,19 +147,27 @@ public class QueryParserImpl implements QueryParser {
                         .collect(Collectors.toList());
             }
 
+            BooleanExpression where = parseWhere(selectBody.getWhere(), tableName);
+            SelectQuery result =  new SelectQuery(tableName, columns, where);
 
-            BooleanExpression where = parseWhere(tableName, selectBody.getWhere());
-            return new SelectQuery(tableName, columns, where);
+            if(selectBody.getJoins()!=null && !selectBody.getJoins().isEmpty()) {
+                Join join = selectBody.getJoins().get(0);
+                Table rightItem = (Table) join.getRightItem();
+                String joinTable = rightItem.getName();
+                result.setJoinTable(joinTable);
+                result.setJoinExpression(parseWhere(join.getOnExpression(), tableName, joinTable));
+            }
+            return result;
         }
         return new InsertQuery("test", 1);
     }
 
-    private BooleanExpression parseWhere(String tableName, Expression wherepart) {
+    private BooleanExpression parseWhere(Expression wherepart, String... tableNames) {
         BooleanExpression where = BooleanExpression.TRUE_EXPRESSION;
         if (wherepart instanceof OldOracleJoinBinaryExpression) {
             OldOracleJoinBinaryExpression eq = (OldOracleJoinBinaryExpression) wherepart;
-            ru.cjdb.sql.expressions.Expression exprLeft = parseExpression(eq.getLeftExpression(), tableName);
-            ru.cjdb.sql.expressions.Expression exprRight = parseExpression(eq.getRightExpression(), tableName);
+            ru.cjdb.sql.expressions.Expression exprLeft = parseExpression(eq.getLeftExpression(), tableNames);
+            ru.cjdb.sql.expressions.Expression exprRight = parseExpression(eq.getRightExpression(), tableNames);
             BinOperator operator = getBinOperator(wherepart);
             where = new Comparison(exprLeft, exprRight, operator);
         }
@@ -214,7 +220,7 @@ public class QueryParserImpl implements QueryParser {
         }
     }
 
-    private ru.cjdb.sql.expressions.Expression parseExpression(Expression expr, String tableName) {
+    private ru.cjdb.sql.expressions.Expression parseExpression(Expression expr, String... tableNames) {
         if (expr instanceof LongValue) {
             return new ValueExpression(((LongValue) expr).getStringValue());
         }
@@ -223,8 +229,8 @@ public class QueryParserImpl implements QueryParser {
         }
         if (expr instanceof Column) {
             String columnName = ((Column) expr).getColumnName();
-            ru.cjdb.scheme.dto.Column column = metainfoService.getTable(tableName).getColumns()
-                    .stream()
+            ru.cjdb.scheme.dto.Column column = asList(tableNames).stream()
+                    .flatMap(name -> metainfoService.getTable(name).getColumns().stream())
                     .filter(col -> col.getName().equals(columnName))
                     .findAny()
                     .orElseThrow(() -> new SqlParseException("Column " + columnName + " not found!"));

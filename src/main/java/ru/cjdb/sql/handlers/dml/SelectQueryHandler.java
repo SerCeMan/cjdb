@@ -8,6 +8,7 @@ import ru.cjdb.scheme.dto.Table;
 import ru.cjdb.sql.cursor.Cursor;
 import ru.cjdb.sql.cursor.FullScanCursor;
 import ru.cjdb.sql.cursor.HashIndexCursor;
+import ru.cjdb.sql.cursor.JoinCursor;
 import ru.cjdb.sql.expressions.BooleanExpression;
 import ru.cjdb.sql.expressions.ColumnValueExpr;
 import ru.cjdb.sql.expressions.Expression;
@@ -48,9 +49,6 @@ public class SelectQueryHandler extends RegisterableQueryHandler<SelectQuery> {
     @Override
     public QueryResult execute(SelectQuery query) {
         Table table = metainfoService.getTable(query.getFrom());
-        int bytesPerRow = metainfoService.bytesPerRow(table);
-
-        DiskManager diskManager = diskManagerFactory.get(table.getName());
 
         List<Column> columns = table.getColumns()
                 .stream()
@@ -58,26 +56,37 @@ public class SelectQueryHandler extends RegisterableQueryHandler<SelectQuery> {
                 .collect(Collectors.toList());
         BooleanExpression condition = query.getCondition();
 
-        Cursor cursor = null;
-        List<Index> indexes = metainfoService.getIndexes(table);
-        if (!indexes.isEmpty()) {
-            cursor = tryCreateIndexCursor(query, table, bytesPerRow, diskManager, columns, condition, indexes);
+        Cursor cursor = createCursor(table, columns, condition);
+
+        if (query.hasJoin()) {
+            Table joinTable = metainfoService.getTable(query.getJoinTable());
+            cursor = new JoinCursor(cursor, query.getJoinExpression(),
+                    () -> createCursor(joinTable, joinTable.getColumns(), BooleanExpression.TRUE_EXPRESSION)
+            );
         }
 
-        if (cursor == null) {
-            cursor = new FullScanCursor(table.getColumns(), columns, condition, bytesPerRow, diskManager);
-        }
         return new SelectQueryResult(cursor);
+    }
+
+    private Cursor createCursor(Table table, List<Column> columns, BooleanExpression condition) {
+        DiskManager diskManager = diskManagerFactory.get(table.getName());
+        int bytesPerRow = metainfoService.bytesPerRow(table);
+
+        List<Index> indexes = metainfoService.getIndexes(table);
+        if (!indexes.isEmpty()) {
+            return tryCreateIndexCursor(table, bytesPerRow, diskManager, columns, condition, indexes);
+        }
+        return new FullScanCursor(table.getColumns(), columns, condition, bytesPerRow, diskManager);
     }
 
     /**
      * Адовая функция, проверяет значение, если это name=value, то пытается создать HashIndex
      */
-    private Cursor tryCreateIndexCursor(SelectQuery query, Table table, int bytesPerRow, DiskManager diskManager,
+    private Cursor tryCreateIndexCursor(Table table, int bytesPerRow, DiskManager diskManager,
                                         List<Column> columns, BooleanExpression condition, List<Index> indexes) {
-        if (query.getCondition() instanceof Comparison) {
-            Comparison comparison = (Comparison) query.getCondition();
-            if(comparison.getOperator() != Comparison.BinOperator.EQUAL) {
+        if (condition instanceof Comparison) {
+            Comparison comparison = (Comparison) condition;
+            if (comparison.getOperator() != Comparison.BinOperator.EQUAL) {
                 // Для хэш индекса нас интересуют только
                 return null;
             }

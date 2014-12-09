@@ -176,6 +176,39 @@ public class QueryExecutorImplTest {
 
 
     @Test
+    public void testSimpleJoin() {
+        String tableName1 = TestUtils.createRandomName();
+        exec("create table %s (test1 INT, test3 INT)", tableName1);
+        String tableName2 = TestUtils.createRandomName();
+        exec("create table %s (test2 INT, test4 INT)", tableName2);
+
+        exec("insert into %s values(%s, %s)", tableName1, 1, 8);
+        exec("insert into %s values(%s, %s)", tableName1, 2, 7);
+        exec("insert into %s values(%s, %s)", tableName1, 3, 6);
+        exec("insert into %s values(%s, %s)", tableName1, 4, 5);
+        exec("insert into %s values(%s, %s)", tableName1, 5, 14);
+        exec("insert into %s values(%s, %s)", tableName1, 5, 15);
+
+
+        exec("insert into %s values(%s, %s)", tableName2, 3, 11);
+        exec("insert into %s values(%s, %s)", tableName2, 4, 12);
+        exec("insert into %s values(%s, %s)", tableName2, 5, 13);
+        exec("insert into %s values(%s, %s)", tableName2, 5, 18);
+        exec("insert into %s values(%s, %s)", tableName2, 6, 14);
+
+        Cursor cursor = exec("select test1,test3,test2,test4 from %s join %s on test1=test2", tableName1, tableName2).getCursor();
+
+        assertRow(cursor, 3, 6, 3, 11);
+        assertRow(cursor, 4, 5, 4, 12);
+        assertRow(cursor, 5, 14, 5, 13);
+        assertRow(cursor, 5, 14, 5, 18);
+        assertRow(cursor, 5, 15, 5, 13);
+        assertRow(cursor, 5, 15, 5, 18);
+        assertTrue(cursor.nextRow() == null);
+    }
+
+
+    @Test
     public void testSimpleDelete() {
         String tableName = TestUtils.createRandomName();
 

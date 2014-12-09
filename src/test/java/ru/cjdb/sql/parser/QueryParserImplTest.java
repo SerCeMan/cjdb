@@ -65,6 +65,28 @@ public class QueryParserImplTest {
 
 
     @Test
+    public void testParseSelectJoinQuery() {
+        String tableName1 = TestUtils.createRandomName();
+        Table table = new Table(tableName1);
+        table.addColumn(new Column("test1", Types.INT));
+        metainfoService.addTable(table);
+
+        String tableName2 = TestUtils.createRandomName();
+        Table table2 = new Table(tableName2);
+        table2.addColumn(new Column("test2", Types.INT));
+        metainfoService.addTable(table2);
+
+        Query query = queryParser.parseQuery("select test1, test2 from " + tableName1 + " join " + tableName2 + " on test1=test2");
+
+        assertTrue(query instanceof SelectQuery);
+        SelectQuery select = (SelectQuery) query;
+        assertEquals(tableName1, select.getFrom());
+        assertEquals(asList("test1", "test2"), select.getProjections());
+        assertEquals(tableName2, select.getJoinTable());
+    }
+
+
+    @Test
     public void testParseCreateIndex() {
         String tableName = TestUtils.createRandomName();
         Table table = new Table(tableName);
