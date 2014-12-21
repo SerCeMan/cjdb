@@ -26,7 +26,7 @@ public class DoubleType implements Type {
     }
 
     @Override
-    public Object read(ByteBuffer buffer) {
+    public Comparable read(ByteBuffer buffer) {
         return buffer.getDouble();
     }
 

@@ -17,15 +17,14 @@ public interface Type {
     /**
      * Записывает в буфер объект в виде массива байт.
      *
-     * @throws java.lang.IllegalArgumentException
-     *      Если пришел объект неправильного типа
+     * @throws java.lang.IllegalArgumentException Если пришел объект неправильного типа
      */
     void write(ByteBuffer buffer, Object o);
 
     /**
      * Читает из буфера объект
      */
-    Object read(ByteBuffer buffer);
+    Comparable<?> read(ByteBuffer buffer);
 
     Comparable valueOf(Object value);
 }

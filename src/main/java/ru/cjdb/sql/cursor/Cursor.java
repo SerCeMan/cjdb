@@ -26,11 +26,15 @@ public interface Cursor {
 
     /**
      * Текущая обрабатываемая страница
+     * <p>
+     * //TODO перенести в FullScanCursor
      */
     int currentPageId();
 
     /**
      * ID текущей строки на странице
+     * <p>
+     * //TODO перенести в FullScanCursor
      */
     int currentRowId();
 

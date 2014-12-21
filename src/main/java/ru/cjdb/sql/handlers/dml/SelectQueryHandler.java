@@ -87,7 +87,7 @@ public class SelectQueryHandler extends RegisterableQueryHandler<SelectQuery> {
         if (condition instanceof Comparison) {
             Comparison comparison = (Comparison) condition;
             if (comparison.getOperator() != Comparison.BinOperator.EQUAL) {
-                // Для хэш индекса нас интересуют только
+                // Для хэш индекса нас интересуют только =
                 return null;
             }
             Expression left = comparison.getLeft();

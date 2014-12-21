@@ -49,7 +49,7 @@ public class VarcharType implements Type {
     }
 
     @Override
-    public Object read(ByteBuffer buffer) {
+    public Comparable read(ByteBuffer buffer) {
         byte[] array = new byte[length];
         buffer.get(array);
         return new String(array, Charset.forName("US-ASCII")).replaceAll("\u0000", "");

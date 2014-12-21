@@ -55,8 +55,7 @@ public class JoinCursor implements Cursor {
         List<Column> resultColumns = new ArrayList<>();
         resultColumns.addAll(row1.getColumns());
         resultColumns.addAll(row2.getColumns());
-        int count = row1.getColumnCount() + row2.getColumnCount();
-        Object[] results = new Object[count];
+        Object[] results = new Object[resultColumns.size()];
         int i = 0;
         for (int j = 0; j < row1.getColumnCount(); j++) {
             results[i++] = row1.getAt(j);

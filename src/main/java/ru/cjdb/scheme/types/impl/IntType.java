@@ -28,7 +28,7 @@ public class IntType implements Type {
     }
 
     @Override
-    public Object read(ByteBuffer buffer) {
+    public Comparable read(ByteBuffer buffer) {
         return buffer.getInt();
     }
 
