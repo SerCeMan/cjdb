@@ -30,7 +30,7 @@ public class HashIndexCursor implements Cursor {
         this.condition = condition;
 
         int bucket = hash % index.getBucketCount();
-        DiskManager indexDiskManager = managerFactory.getForIndex(index.getFileName(bucket));
+        DiskManager indexDiskManager = managerFactory.getForHashIndex(index.getFileName(bucket));
 
         List<Column> idXcolumns = IndexUtils.indexColumns();
         int bytesPerIdxRow = 2 * Integer.BYTES; //page, row

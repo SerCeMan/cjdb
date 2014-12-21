@@ -16,6 +16,8 @@ import ru.cjdb.utils.IndexUtils;
 import java.nio.ByteBuffer;
 import java.util.List;
 
+import static ru.cjdb.scheme.dto.Index.IndexType;
+
 /**
  * @author Sergey Tselovalnikov
  * @since 01.12.14
@@ -32,6 +34,18 @@ public class IndexServiceImpl implements IndexService {
 
     @Override
     public void addRow(Table table, Index index, int pageId, int rowId, Object[] values) {
+        if(index.getType() == IndexType.HASH) {
+            addHashIndexRow(table, index, pageId, rowId, values);
+        } else {
+            addBTreeIndexRow(table, index, pageId, rowId, values);
+        }
+    }
+
+    private void addBTreeIndexRow(Table table, Index index, int pageId, int rowId, Object[] values) {
+
+    }
+
+    private void addHashIndexRow(Table table, Index index, int pageId, int rowId, Object[] values) {
         int bucket = -1;
         List<Column> columns = table.getColumns();
         for (int i = 0; i < columns.size(); i++) {
@@ -42,7 +56,7 @@ public class IndexServiceImpl implements IndexService {
         }
         assert bucket != -1;
 
-        DiskManager manager = diskManagerFactory.getForIndex(index.getFileName(bucket));
+        DiskManager manager = diskManagerFactory.getForHashIndex(index.getFileName(bucket));
         DiskPage freePage = manager.getFreePage();
 
 

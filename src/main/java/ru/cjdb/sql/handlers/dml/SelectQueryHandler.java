@@ -5,10 +5,7 @@ import ru.cjdb.scheme.MetainfoService;
 import ru.cjdb.scheme.dto.Column;
 import ru.cjdb.scheme.dto.Index;
 import ru.cjdb.scheme.dto.Table;
-import ru.cjdb.sql.cursor.Cursor;
-import ru.cjdb.sql.cursor.FullScanCursor;
-import ru.cjdb.sql.cursor.HashIndexCursor;
-import ru.cjdb.sql.cursor.JoinCursor;
+import ru.cjdb.sql.cursor.*;
 import ru.cjdb.sql.expressions.BooleanExpression;
 import ru.cjdb.sql.expressions.ColumnValueExpr;
 import ru.cjdb.sql.expressions.Expression;
@@ -26,6 +23,8 @@ import javax.inject.Singleton;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import static ru.cjdb.scheme.dto.Index.IndexType;
 
 /**
  * @author Sergey Tselovalnikov
@@ -93,7 +92,7 @@ public class SelectQueryHandler extends RegisterableQueryHandler<SelectQuery> {
             Expression left = comparison.getLeft();
             Expression right = comparison.getRight();
             String colName = null;
-            Object value = null;
+            Comparable<?> value = null;
             if (left instanceof ColumnValueExpr && right instanceof ValueExpression) {
                 colName = ((ColumnValueExpr) left).getName();
                 value = right.getValue(null);
@@ -110,9 +109,14 @@ public class SelectQueryHandler extends RegisterableQueryHandler<SelectQuery> {
                     .findAny();
             if (idx.isPresent()) {
                 Column column = table.getColumns().stream().filter(col -> col.getName().equals(columnName)).findAny().get();
-                int hash = column.getType().valueOf(value).hashCode();
-                return new HashIndexCursor(diskManagerFactory, table.getColumns(), columns, condition,
-                        bytesPerRow, diskManager, idx.get(), hash);
+                if (idx.get().getType() == IndexType.HASH) {
+                    int hash = column.getType().valueOf(value).hashCode();
+                    return new HashIndexCursor(diskManagerFactory, table.getColumns(), columns, condition,
+                            bytesPerRow, diskManager, idx.get(), hash);
+                } else {
+                    return new BTreeCursor(diskManagerFactory.get(table.getName() + "_btr_idx"), table.getColumns(), columns, condition,
+                            bytesPerRow, diskManager, value, column.getType());
+                }
             }
         }
         return null;

@@ -3,12 +3,12 @@ package ru.cjdb.storage.fs;
 import com.google.common.base.Preconditions;
 import ru.cjdb.storage.Constants;
 import ru.cjdb.storage.DiskPage;
-import ru.cjdb.storage.DiskPageUtils;
 import ru.cjdb.storage.PageCache;
 import ru.cjdb.utils.FileUtils;
 
 import java.nio.MappedByteBuffer;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.function.Predicate;
 
 import static java.nio.channels.FileChannel.MapMode;
 import static ru.cjdb.storage.Constants.PAGE_SIZE;
@@ -26,17 +26,18 @@ class DiskManagerImpl implements DiskManager {
     private final AtomicInteger counter = new AtomicInteger(); // page counter
 
     private final String tableName;
-    private final int bytesPerRow;
     private final PageCache pageCache;
     private final String filePath; //Путь до файла БД
+    private final Predicate<DiskPage> freePageCheker;
     private int freePageId = -1;
     private MappedByteBuffer byteBuffer;
 
-    public DiskManagerImpl(String filePath, String tableName, int bytesPerRow, PageCache pageCache) {
+    public DiskManagerImpl(String filePath, String tableName,
+                           PageCache pageCache, Predicate<DiskPage> freePageCheker) {
         this.filePath = filePath;
         this.tableName = tableName;
-        this.bytesPerRow = bytesPerRow;
         this.pageCache = pageCache;
+        this.freePageCheker = freePageCheker;
         init();
     }
 
@@ -79,7 +80,7 @@ class DiskManagerImpl implements DiskManager {
     public DiskPage getFreePage() {
         while (freePageId != -1) {
             DiskPage page = getPage(freePageId);
-            if (hasFreeRows(page)) {
+            if (freePageCheker.test(page)) {
                 return page;
             } else {
                 freePageId = page.getNextFreePage();
@@ -87,11 +88,6 @@ class DiskManagerImpl implements DiskManager {
         }
         expand();
         return getFreePage();
-    }
-
-    // TODO перенести куда-нибудь
-    private boolean hasFreeRows(DiskPage page) {
-        return DiskPageUtils.hasFreeRows(page, bytesPerRow);
     }
 
     /**

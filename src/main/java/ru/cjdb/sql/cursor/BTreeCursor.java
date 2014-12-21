@@ -1,11 +1,10 @@
 package ru.cjdb.sql.cursor;
 
 import ru.cjdb.scheme.dto.Column;
-import ru.cjdb.scheme.dto.Index;
 import ru.cjdb.scheme.types.Type;
-import ru.cjdb.scheme.types.Types;
 import ru.cjdb.sql.expressions.BooleanExpression;
 import ru.cjdb.sql.result.Row;
+import ru.cjdb.storage.Constants;
 import ru.cjdb.storage.DiskPage;
 import ru.cjdb.storage.fs.DiskManager;
 
@@ -16,11 +15,11 @@ import static ru.cjdb.sql.expressions.BooleanExpression.TRUE_EXPRESSION;
 
 /**
  * Структура данных в дереве (is_leaf = false):
- * [page_id][is_leaf] [next_page][value][next_page]...
+ * [page_id][is_leaf][el_count] [next_page][value][next_page]...
  * <p>
  * <p>
  * Структура данных в листе (is_leaf = true):
- * [page_id][is_leaf] [value,page_number,page_id]...[next_right]
+ * [page_id][is_leaf][el_count] [value,page_number,page_id]...[next_right]
  *
  * @author Sergey Tselovalnikov
  * @since 21.12.14
@@ -28,25 +27,28 @@ import static ru.cjdb.sql.expressions.BooleanExpression.TRUE_EXPRESSION;
 public class BTreeCursor implements Cursor {
 
     private final FullScanCursor tableCursor;
-    private DiskManager diskManager;
+    private final DiskManager diskManager;
+    private final BooleanExpression condition;
+    private final int maxLeafElementCount;
+    private final Comparable eqValue;
+    private final Type type;
 
-    private int nextRowId = 0;
     private int nextPageId = 0;
-    private BooleanExpression condition;
-    private Comparable eqValue;
-
-    //TODO
-    private int nodeElementCount = 0;
-    private int leafElementCount = 0;
     private int currentElement = 0;
-    private Type type = Types.INT;
-    private int bytes = type.bytes();
 
     public BTreeCursor(DiskManager diskManager, List<Column> allColumns, List<Column> columns, BooleanExpression condition,
-                       int bytesPerRow, DiskManager manager, Index index, Comparable eqValue) {
+                       int bytesPerRow, DiskManager manager, Comparable eqValue, Type type) {
         this.diskManager = diskManager;
+        this.eqValue = eqValue;
+        this.condition = condition;
+        this.type = type;
 
         tableCursor = new FullScanCursor(allColumns, columns, TRUE_EXPRESSION, bytesPerRow, manager);
+
+        int metadataSize = 2 * Integer.BYTES; // page_id, is_leaf
+        int nextPageSize = Integer.BYTES;
+        int elCountsize = Integer.BYTES;
+        maxLeafElementCount = (Constants.PAGE_SIZE - metadataSize - nextPageSize - elCountsize) / (this.type.bytes() + nextPageSize + nextPageSize);
 
         initRecursive();
     }
@@ -55,6 +57,7 @@ public class BTreeCursor implements Cursor {
         DiskPage idxPage = diskManager.getPage(nextPageId);
         ByteBuffer idxBuf = ByteBuffer.wrap(idxPage.getData());
         idxBuf.position(Integer.BYTES);
+        int nodeElementCount = idxBuf.getInt();
         boolean isLeaf = idxBuf.get() != 0;
         if (!isLeaf) {
             for (int i = 0; i < nodeElementCount; i++) {
@@ -76,6 +79,8 @@ public class BTreeCursor implements Cursor {
     public Row nextRow() {
         DiskPage idxPage = diskManager.getPage(nextPageId);
         ByteBuffer idxBuf = ByteBuffer.wrap(idxPage.getData());
+        idxBuf.position(2 * Integer.BYTES);
+        int leafElementCount = idxBuf.getInt();
 
         if (currentElement == leafElementCount) {
             nextPageId = idxBuf.getInt();
@@ -100,7 +105,11 @@ public class BTreeCursor implements Cursor {
         tableCursor.setNextPageId(idxBuf.getInt());
         tableCursor.setNextRowId(idxBuf.getInt());
         currentElement++;
-        return tableCursor.nextRow();
+        Row row = tableCursor.nextRow();
+        if (!condition.apply(row)) {
+            return nextRow();
+        }
+        return row;
     }
 
     @Override
