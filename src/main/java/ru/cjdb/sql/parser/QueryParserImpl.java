@@ -60,6 +60,14 @@ public class QueryParserImpl implements QueryParser {
     public Query parseQuery(String sql) {
         // Все в нижний регистр, чтобы не было случайных ошибок,
         sql = sql.toLowerCase();
+        IndexType idxType = null;
+        if(sql.endsWith("using hash")) {
+            idxType = IndexType.HASH;
+            sql = sql.substring(0, sql.indexOf("using hash"));
+        } else if (sql.endsWith("using btree")) {
+            idxType = IndexType.BTREE;
+            sql = sql.substring(0, sql.indexOf("using btree"));
+        }
 
         Statement parse;
         try {
@@ -117,7 +125,10 @@ public class QueryParserImpl implements QueryParser {
             List<IndexColumnDef> columns = index.getColumnsNames().stream()
                     .map(col -> new IndexColumnDef(col, Order.ASC))
                     .collect(Collectors.toList());
-            return new CreateIndexQuery(idxName, tableName, true, IndexType.HASH, columns);
+            if(idxType == null) {
+                throw new SqlParseException("You should provide index type");
+            }
+            return new CreateIndexQuery(idxName, tableName, true, idxType, columns);
         }
         if (parse instanceof Delete) {
             Delete delete = (Delete)parse;

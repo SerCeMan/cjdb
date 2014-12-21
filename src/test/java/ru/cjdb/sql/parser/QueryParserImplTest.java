@@ -94,8 +94,7 @@ public class QueryParserImplTest {
         metainfoService.addTable(table);
 
         String idxName = TestUtils.createRandomName();
-        //TODO проблема, парсер не парсит USING HASH
-        Query query = queryParser.parseQuery("create index  " +idxName + " on " + tableName + "(test)");
+        Query query = queryParser.parseQuery("create index  " +idxName + " on " + tableName + "(test) using hash");
 
         assertTrue(query instanceof CreateIndexQuery);
         CreateIndexQuery idxQuery = (CreateIndexQuery) query;
@@ -103,6 +102,24 @@ public class QueryParserImplTest {
         assertEquals(tableName, idxQuery.getTable());
         assertEquals("test", idxQuery.getIndexColDef().get(0).getName());
         assertEquals(IndexType.HASH, idxQuery.getIndexType());
+    }
+
+    @Test
+    public void testParseCreateBTreeIndex() {
+        String tableName = TestUtils.createRandomName();
+        Table table = new Table(tableName);
+        table.addColumn(new Column("test", Types.INT));
+        metainfoService.addTable(table);
+
+        String idxName = TestUtils.createRandomName();
+        Query query = queryParser.parseQuery("create index  " +idxName + " on " + tableName + "(test) using btree");
+
+        assertTrue(query instanceof CreateIndexQuery);
+        CreateIndexQuery idxQuery = (CreateIndexQuery) query;
+        assertEquals(idxName, idxQuery.getName());
+        assertEquals(tableName, idxQuery.getTable());
+        assertEquals("test", idxQuery.getIndexColDef().get(0).getName());
+        assertEquals(IndexType.BTREE, idxQuery.getIndexType());
     }
 
 
