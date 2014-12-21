@@ -13,6 +13,8 @@ import java.util.Objects;
 /**
  * Индекс в базе данных
  *
+ * TODO подклассы
+ *
  * @author Sergey Tselovalnikov
  * @since 30.11.14
  */
@@ -93,6 +95,10 @@ public class Index {
                 type.equals(index.type) &&
                 table.equals(index.table);
 
+    }
+
+    public String getBTreeName() {
+        return getTable() + "_" + getName() + "_btree";
     }
 
     @XmlJavaTypeAdapter(IndexTypeAdapter.class)

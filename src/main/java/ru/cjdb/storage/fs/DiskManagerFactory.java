@@ -9,6 +9,7 @@ import ru.cjdb.storage.PageCache;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.nio.ByteBuffer;
+import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -54,6 +55,8 @@ public class DiskManagerFactory {
         return managers.get(tableName);
     }
 
+    private HashSet<Integer> used = new HashSet<>();
+
     public DiskManager getForBTreeIndex(String tableName) {
         DiskManager manager = managers.get(tableName);
         if (manager == null) {
@@ -63,9 +66,13 @@ public class DiskManagerFactory {
                         // что делаем, проверяем что страница свободна по записи el_count на страничке индекса
                         // а уж их как-нибудь будем менеджить сами дальше, потому что для B-tree свободные мы просим по
                         // необычной логике, не как для full scan
-                        ByteBuffer bb = ByteBuffer.wrap(page.getData());
-                        bb.position(2 * Integer.BYTES);
-                        return bb.getInt() == 0;
+                        if(used.contains(page.getId()))
+                            return false;
+                        used.add(page.getId());
+                        return true;
+//                        ByteBuffer bb = ByteBuffer.wrap(page.getData());
+//                        bb.position(2 * Integer.BYTES);
+//                        return bb.getInt() == 0;
                     });
             managers.putIfAbsent(tableName, manager);
         }

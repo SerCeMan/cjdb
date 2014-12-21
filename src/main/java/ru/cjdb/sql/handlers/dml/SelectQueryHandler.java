@@ -114,8 +114,9 @@ public class SelectQueryHandler extends RegisterableQueryHandler<SelectQuery> {
                     return new HashIndexCursor(diskManagerFactory, table.getColumns(), columns, condition,
                             bytesPerRow, diskManager, idx.get(), hash);
                 } else {
-                    return new BTreeCursor(diskManagerFactory.get(table.getName() + "_btr_idx"), table.getColumns(), columns, condition,
-                            bytesPerRow, diskManager, value, column.getType());
+                    Comparable<?> val = column.getType().valueOf(value);
+                    return new BTreeCursor(diskManagerFactory.getForBTreeIndex(idx.get().getBTreeName()), table.getColumns(), columns, condition,
+                            bytesPerRow, diskManager, val, column.getType());
                 }
             }
         }

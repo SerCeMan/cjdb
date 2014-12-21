@@ -18,7 +18,7 @@ import static ru.cjdb.sql.expressions.BooleanExpression.TRUE_EXPRESSION;
  * <p>
  * <p>
  * Структура данных в листе (is_leaf = true):
- * [page_id][is_leaf][el_count] [value,page_number,page_id]...[next_right]
+ * [page_id][is_leaf][el_count] [value,page_id,row_id]...[next_right]
  *
  * @author Sergey Tselovalnikov
  * @since 21.12.14
@@ -50,13 +50,13 @@ public class BTreeCursor implements Cursor {
         DiskPage idxPage = diskManager.getPage(nextPageId);
         ByteBuffer idxBuf = ByteBuffer.wrap(idxPage.getData());
         idxBuf.position(Integer.BYTES);
-        int nodeElementCount = idxBuf.getInt();
         boolean isLeaf = idxBuf.get() != 0;
+        int nodeElementCount = idxBuf.getInt();
         if (!isLeaf) {
             for (int i = 0; i < nodeElementCount; i++) {
                 int nextPage = idxBuf.getInt();
                 Comparable<?> value = type.read(idxBuf);
-                if (eqValue.compareTo(value) < 0) {
+                if (eqValue.compareTo(value) <= 0) {
                     nextPageId = nextPage;
                     initRecursive();
                     return;
@@ -72,9 +72,11 @@ public class BTreeCursor implements Cursor {
     public Row nextRow() {
         DiskPage idxPage = diskManager.getPage(nextPageId);
         ByteBuffer idxBuf = ByteBuffer.wrap(idxPage.getData());
-        idxBuf.position(2 * Integer.BYTES);
+        idxBuf.position(Integer.BYTES + 1);
         int leafElementCount = idxBuf.getInt();
 
+        int metaDataSize = Integer.BYTES * 2 + 1;
+        idxBuf.position(metaDataSize + currentElement * (type.bytes() + Integer.BYTES + Integer.BYTES));
         if (currentElement == leafElementCount) {
             nextPageId = idxBuf.getInt();
             if (nextPageId == 0) {
@@ -83,7 +85,6 @@ public class BTreeCursor implements Cursor {
             currentElement = 0;
             return nextRow();
         }
-        idxBuf.position(currentElement * (type.bytes() + Integer.BYTES + Integer.BYTES));
         Comparable<?> value = type.read(idxBuf);
         int compResult = eqValue.compareTo(value);
         if (compResult < 0) {

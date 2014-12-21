@@ -46,7 +46,7 @@ public class IndexServiceImpl implements IndexService {
     }
 
     private void addBTreeIndexRow(Table table, Index index, int pageId, int rowId, Object[] values) {
-        DiskManager manager = diskManagerFactory.getForHashIndex(index.getTable() + "_" + index.getName() + "_btree");
+        DiskManager manager = diskManagerFactory.getForBTreeIndex(index.getBTreeName());
         int metadataSize = 2 * Integer.BYTES; // page_id, is_leaf
         int nextPageSize = Integer.BYTES;
         int elCountsize = Integer.BYTES;
@@ -64,25 +64,55 @@ public class IndexServiceImpl implements IndexService {
         int maxLeafElementCount = (Constants.PAGE_SIZE - metadataSize - nextPageSize - elCountsize) / (type.bytes() + nextPageSize + nextPageSize);
         int maxNodeElementCount = (Constants.PAGE_SIZE - metadataSize - nextPageSize - elCountsize) / (type.bytes() + nextPageSize + nextPageSize);
 
-        DiskPage root = manager.getFreePage();
-        if (manager.pageCount() == 1) {
+        if (manager.pageCount() == 0) {
             //init
+            DiskPage root = manager.getFreePage();
             DiskPage leftLeaf = manager.getFreePage();
             DiskPage rightLeaf = manager.getFreePage();
 
             ByteBuffer rootBb = ByteBuffer.wrap(root.getData());
             rootBb.position(Integer.BYTES);
-            rootBb.put((byte) 1);
+            rootBb.put((byte) 0);
             rootBb.putInt(1);
 
             rootBb.putInt(leftLeaf.getId());
             type.write(rootBb, value);
             rootBb.putInt(rightLeaf.getId());
+
+            ByteBuffer leftBb = ByteBuffer.wrap(leftLeaf.getData());
+            leftBb.position(Integer.BYTES);
+            leftBb.put((byte) 1);
+            insertValueToBTreeLeaf(pageId, rowId, value, type, maxLeafElementCount, leftBb);
+            leftBb.putInt(pageId);
+            leftBb.putInt(rowId);
+
+            ByteBuffer rightBb = ByteBuffer.wrap(rightLeaf.getData());
+            rightBb.position(Integer.BYTES);
+            rightBb.put((byte) 1);
+
+            root.setDirty(true);
+            leftLeaf.setDirty(true);
+            rightLeaf.setDirty(true);
         } else {
+            DiskPage root = manager.getPage(0);
             DiskPage leaf = getLeaf(root, type, (Comparable) value, manager);
             ByteBuffer pageBb = ByteBuffer.wrap(leaf.getData());
-            pageBb.position(Integer.BYTES + 1);
+            insertValueToBTreeLeaf(pageId, rowId, value, type, maxLeafElementCount, pageBb);
+            leaf.setDirty(true);
         }
+    }
+
+    private void insertValueToBTreeLeaf(int pageId, int rowId, Object value, Type type, int maxLeafElementCount, ByteBuffer pageBb) {
+        pageBb.position(Integer.BYTES + 1);
+        int elementCount = pageBb.getInt();
+        if (elementCount == maxLeafElementCount) {
+            //expand
+        }
+        pageBb.position(Integer.BYTES + 1 + Integer.BYTES + elementCount * (type.bytes() + 2 * Integer.BYTES));
+        type.write(pageBb, value);
+        pageBb.putInt(pageId);
+        pageBb.putInt(rowId);
+        pageBb.putInt(Integer.BYTES + 1, elementCount + 1);
     }
 
     private DiskPage getLeaf(DiskPage page, Type type, Comparable eqValue, DiskManager manager) {

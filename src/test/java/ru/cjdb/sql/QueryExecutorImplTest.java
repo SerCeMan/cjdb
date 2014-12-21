@@ -31,6 +31,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import static java.util.Arrays.asList;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static ru.cjdb.scheme.dto.Index.IndexType;
 import static ru.cjdb.sql.expressions.conditions.Comparison.BinOperator.GREATER;
@@ -157,6 +158,24 @@ public class QueryExecutorImplTest {
     }
 
     @Test
+    public void testBTreeIndexSmall() {
+        String tableName = TestUtils.createRandomName();
+        exec("create table %s (test1 INT, test2 INT)", tableName);
+
+        String indexName = TestUtils.createRandomName();
+        exec("CREATE INDEX %s ON %s(test1) USING BTREE", indexName, tableName);
+
+        exec("insert into %s values(%s, %s)", tableName, 1, 1);
+        exec("insert into %s values(%s, %s)", tableName, 1, 2);
+        exec("insert into %s values(%s, %s)", tableName, 3, 3);
+
+        Cursor cursor = exec("select * from %s where test1=1", tableName).getCursor();
+        assertRow(cursor, 1, 1);
+        assertRow(cursor, 1, 2);
+        assertEnd(cursor);
+    }
+
+    @Test
     public void testSimpleWhereLess() {
         String tableName = TestUtils.createRandomName();
 
@@ -173,7 +192,6 @@ public class QueryExecutorImplTest {
         assertRow(cursor, 2, 2);
         assertTrue(cursor.nextRow() == null);
     }
-
 
     @Test
     public void testSimpleJoin() {
@@ -232,6 +250,7 @@ public class QueryExecutorImplTest {
         assertRow(cursor, 6, 6);
         assertTrue(cursor.nextRow() == null);
     }
+
 
     @Test
     public void testSimpleWhere() {
@@ -433,6 +452,10 @@ public class QueryExecutorImplTest {
         System.out.println("time = " + (end - start) + "ms");
 
         assertEquals(expect, actual);
+    }
+
+    private static void assertEnd(Cursor cursor) {
+        assertNull(cursor.nextRow());
     }
 
 
