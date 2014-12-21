@@ -4,7 +4,6 @@ import ru.cjdb.scheme.dto.Column;
 import ru.cjdb.scheme.types.Type;
 import ru.cjdb.sql.expressions.BooleanExpression;
 import ru.cjdb.sql.result.Row;
-import ru.cjdb.storage.Constants;
 import ru.cjdb.storage.DiskPage;
 import ru.cjdb.storage.fs.DiskManager;
 
@@ -29,7 +28,6 @@ public class BTreeCursor implements Cursor {
     private final FullScanCursor tableCursor;
     private final DiskManager diskManager;
     private final BooleanExpression condition;
-    private final int maxLeafElementCount;
     private final Comparable eqValue;
     private final Type type;
 
@@ -44,11 +42,6 @@ public class BTreeCursor implements Cursor {
         this.type = type;
 
         tableCursor = new FullScanCursor(allColumns, columns, TRUE_EXPRESSION, bytesPerRow, manager);
-
-        int metadataSize = 2 * Integer.BYTES; // page_id, is_leaf
-        int nextPageSize = Integer.BYTES;
-        int elCountsize = Integer.BYTES;
-        maxLeafElementCount = (Constants.PAGE_SIZE - metadataSize - nextPageSize - elCountsize) / (this.type.bytes() + nextPageSize + nextPageSize);
 
         initRecursive();
     }
