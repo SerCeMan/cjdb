@@ -64,7 +64,8 @@ class DiskManagerImpl implements DiskManager {
 
     @Override
     public DiskPage getPage(int id) {
-        Preconditions.checkArgument(id >= 0 && id < pageCount(), "Page number should been be between zero and pageCount");
+        int pageCount = pageCount();
+        Preconditions.checkArgument(id >= 0 && id < pageCount, "Page number should been be between zero and pageCount(" + pageCount + "), value=" + id);
         return pageCache.get(tableName, id, () -> loadPageFromDisk(id));
     }
 

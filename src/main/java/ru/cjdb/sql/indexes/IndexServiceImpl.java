@@ -7,8 +7,9 @@ import ru.cjdb.scheme.dto.Table;
 import ru.cjdb.scheme.types.Type;
 import ru.cjdb.sql.cursor.Cursor;
 import ru.cjdb.sql.cursor.FullScanCursor;
+import ru.cjdb.sql.cursor.btree.BTree;
+import ru.cjdb.sql.cursor.btree.RowLink;
 import ru.cjdb.sql.expressions.BooleanExpression;
-import ru.cjdb.sql.expressions.conditions.Comparison;
 import ru.cjdb.storage.Constants;
 import ru.cjdb.storage.DiskPage;
 import ru.cjdb.storage.DiskPageUtils;
@@ -18,7 +19,6 @@ import ru.cjdb.utils.IndexUtils;
 
 import java.nio.ByteBuffer;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static ru.cjdb.scheme.dto.Index.IndexType;
 
@@ -64,75 +64,8 @@ public class IndexServiceImpl implements IndexService {
         int maxLeafElementCount = (Constants.PAGE_SIZE - metadataSize - nextPageSize - elCountsize) / (type.bytes() + nextPageSize + nextPageSize);
         int maxNodeElementCount = (Constants.PAGE_SIZE - metadataSize - nextPageSize - elCountsize) / (type.bytes() + nextPageSize + nextPageSize);
 
-        if (manager.pageCount() == 0) {
-            //init
-            DiskPage root = manager.getFreePage();
-            DiskPage leftLeaf = manager.getFreePage();
-            DiskPage rightLeaf = manager.getFreePage();
-
-            ByteBuffer rootBb = ByteBuffer.wrap(root.getData());
-            rootBb.position(Integer.BYTES);
-            rootBb.put((byte) 0);
-            rootBb.putInt(1);
-
-            rootBb.putInt(leftLeaf.getId());
-            type.write(rootBb, value);
-            rootBb.putInt(rightLeaf.getId());
-
-            ByteBuffer leftBb = ByteBuffer.wrap(leftLeaf.getData());
-            leftBb.position(Integer.BYTES);
-            leftBb.put((byte) 1);
-            insertValueToBTreeLeaf(pageId, rowId, value, type, maxLeafElementCount, leftBb);
-            leftBb.putInt(pageId);
-            leftBb.putInt(rowId);
-
-            ByteBuffer rightBb = ByteBuffer.wrap(rightLeaf.getData());
-            rightBb.position(Integer.BYTES);
-            rightBb.put((byte) 1);
-
-            root.setDirty(true);
-            leftLeaf.setDirty(true);
-            rightLeaf.setDirty(true);
-        } else {
-            DiskPage root = manager.getPage(0);
-            DiskPage leaf = getLeaf(root, type, (Comparable) value, manager);
-            ByteBuffer pageBb = ByteBuffer.wrap(leaf.getData());
-            insertValueToBTreeLeaf(pageId, rowId, value, type, maxLeafElementCount, pageBb);
-            leaf.setDirty(true);
-        }
-    }
-
-    private void insertValueToBTreeLeaf(int pageId, int rowId, Object value, Type type, int maxLeafElementCount, ByteBuffer pageBb) {
-        pageBb.position(Integer.BYTES + 1);
-        int elementCount = pageBb.getInt();
-        if (elementCount == maxLeafElementCount) {
-            //expand
-            throw new RuntimeException("Should be expanded!");
-        }
-        pageBb.position(Integer.BYTES + 1 + Integer.BYTES + elementCount * (type.bytes() + 2 * Integer.BYTES));
-        type.write(pageBb, value);
-        pageBb.putInt(pageId);
-        pageBb.putInt(rowId);
-        pageBb.putInt(Integer.BYTES + 1, elementCount + 1);
-    }
-
-    private DiskPage getLeaf(DiskPage page, Type type, Comparable eqValue, DiskManager manager) {
-        ByteBuffer pageBb = ByteBuffer.wrap(page.getData());
-        pageBb.position(Integer.BYTES);
-        boolean isLeaf = pageBb.get() != 0;
-        if (isLeaf) {
-            return page;
-        }
-        int elCount = pageBb.getInt();
-        for (int i = 0; i < elCount; i++) {
-            int pageId = pageBb.getInt();
-            Comparable value = type.read(pageBb);
-            if (eqValue.compareTo(value) <= 0) {
-                return getLeaf(manager.getPage(pageId), type, eqValue, manager);
-            }
-        }
-        int pageId = pageBb.getInt();
-        return getLeaf(manager.getPage(pageId), type, eqValue, manager);
+        BTree tree = new BTree(type, manager, maxNodeElementCount, maxLeafElementCount);
+        tree.add((Comparable) value, new RowLink(pageId, rowId));
     }
 
     private void addHashIndexRow(Table table, Index index, int pageId, int rowId, Object[] values) {
