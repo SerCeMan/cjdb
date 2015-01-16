@@ -14,11 +14,11 @@ import static ru.cjdb.sql.expressions.BooleanExpression.TRUE_EXPRESSION;
 
 /**
  * Структура данных в дереве (is_leaf = false):
- * [page_id][is_leaf][el_count] [next_page][value][next_page]...
+ * [next_free][parent_id][is_leaf][el_count] [next_page][value][next_page]...
  * <p>
  * <p>
  * Структура данных в листе (is_leaf = true):
- * [page_id][is_leaf][el_count] [value,page_id,row_id]...[next_right]
+ * [next_free][parent_id][is_leaf][el_count] [value,page_id,row_id]...[next_right]
  *
  * @author Sergey Tselovalnikov
  * @since 21.12.14
@@ -43,13 +43,25 @@ public class BTreeCursor implements Cursor {
 
         tableCursor = new FullScanCursor(allColumns, columns, TRUE_EXPRESSION, bytesPerRow, manager);
 
+        nextPageId = getRootPageId(nextPageId);
         initRecursive();
+    }
+
+    private int getRootPageId(int nextPageId) {
+        DiskPage idxPage = diskManager.getPage(nextPageId);
+        ByteBuffer buffer = ByteBuffer.wrap(idxPage.getData());
+        buffer.position(Integer.BYTES);
+        int parent = buffer.getInt();
+        if (parent == 0) {
+            return nextPageId;
+        }
+        return getRootPageId(parent);
     }
 
     public void initRecursive() {
         DiskPage idxPage = diskManager.getPage(nextPageId);
         ByteBuffer idxBuf = ByteBuffer.wrap(idxPage.getData());
-        idxBuf.position(Integer.BYTES);
+        idxBuf.position(2 * Integer.BYTES);
         boolean isLeaf = idxBuf.get() != 0;
         int nodeElementCount = idxBuf.getInt();
         if (!isLeaf) {
@@ -72,10 +84,10 @@ public class BTreeCursor implements Cursor {
     public Row nextRow() {
         DiskPage idxPage = diskManager.getPage(nextPageId);
         ByteBuffer idxBuf = ByteBuffer.wrap(idxPage.getData());
-        idxBuf.position(Integer.BYTES + 1);
+        idxBuf.position(2 * Integer.BYTES + 1);
         int leafElementCount = idxBuf.getInt();
 
-        int metaDataSize = Integer.BYTES * 2 + 1;
+        int metaDataSize = Integer.BYTES * 3 + 1;
         idxBuf.position(metaDataSize + currentElement * (type.bytes() + Integer.BYTES + Integer.BYTES));
         if (currentElement == leafElementCount) {
             nextPageId = idxBuf.getInt();

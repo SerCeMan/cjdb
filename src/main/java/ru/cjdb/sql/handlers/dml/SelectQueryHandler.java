@@ -72,10 +72,14 @@ public class SelectQueryHandler extends RegisterableQueryHandler<SelectQuery> {
         int bytesPerRow = metainfoService.bytesPerRow(table);
 
         List<Index> indexes = metainfoService.getIndexes(table);
+        Cursor cursor = null;
         if (!indexes.isEmpty()) {
-            return tryCreateIndexCursor(table, bytesPerRow, diskManager, columns, condition, indexes);
+            cursor = tryCreateIndexCursor(table, bytesPerRow, diskManager, columns, condition, indexes);
         }
-        return new FullScanCursor(table.getColumns(), columns, condition, bytesPerRow, diskManager);
+        if (cursor == null) {
+            cursor = new FullScanCursor(table.getColumns(), columns, condition, bytesPerRow, diskManager);
+        }
+        return cursor;
     }
 
     /**

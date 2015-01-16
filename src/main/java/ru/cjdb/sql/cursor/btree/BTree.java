@@ -49,8 +49,57 @@ public class BTree {
     }
 
     private BTreeNode splitNode(BTreeNode node) {
-        BTreeNode newNode = null;
-        return newNode;
+        if (node.isLeaf()) {
+            BTreeNode newNode = createLeaf();
+            node.setNextNode(newNode);
+            Comparable median = copyOneHalf(node, newNode);
+            BTreeNode parent = getParent(node);
+            if (parent == null) {
+                parent = createNode();
+                node.setParent(parent);
+                newNode.setParent(parent);
+            }
+            parent.add(node, newNode, median);
+            parent.save();
+            return newNode;
+        } else {
+            throw new RuntimeException("Unimplemented yet!");
+        }
+    }
+
+    private BTreeNode createNode() {
+        DiskPage page = indexDiskManager.getFreePage();
+        return BTreeNode.createEmptyNode(page, this);
+    }
+
+    private BTreeNode createLeaf() {
+        DiskPage page = indexDiskManager.getFreePage();
+        return BTreeNode.createEmptyLeaf(page, this);
+    }
+
+    private Comparable copyOneHalf(BTreeNode node, BTreeNode newNode) {
+        Preconditions.checkArgument(node.isLeaf());
+        Preconditions.checkArgument(newNode.isLeaf());
+        List<Comparable> values = node.getValues();
+        int medianNum = values.size() / 2;
+
+        node.setValues(values.subList(0, medianNum));
+        newNode.setValues(values.subList(medianNum, values.size()));
+
+        List<RowLink> rowLinks = node.getRowLinks();
+        node.setRowLinks(rowLinks.subList(0, medianNum));
+        newNode.setRowLinks(rowLinks.subList(medianNum, rowLinks.size()));
+
+        return values.get(medianNum);
+    }
+
+    private BTreeNode getParent(BTreeNode node) {
+        if(node.getParentId() == 0) {
+            return null;
+        }
+        BTreeNode parent = getNode(node.getParentId());
+        Preconditions.checkArgument(!parent.isLeaf(), "Parent can't be leaf");
+        return parent;
     }
 
     private BTreeNode findChild(BTreeNode node, Comparable value) {
@@ -64,19 +113,12 @@ public class BTree {
         return getNode(node.getChild(values.size()));
     }
 
-    private BTreeNode createLeaf() {
-        DiskPage page = indexDiskManager.getFreePage();
-        return BTreeNode.createEmptyLeaf(page, this);
-    }
-
     private BTreeNode getNode(int nodeId) {
         if (nodeId >= indexDiskManager.pageCount()) {
             return null;
         }
         DiskPage page = indexDiskManager.getPage(nodeId);
-
-        BTreeNode node = BTreeNode.load(page, this);
-        return node;
+        return BTreeNode.load(page, this);
     }
 
     Type valType() {

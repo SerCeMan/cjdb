@@ -16,10 +16,10 @@ public class BTreeNode {
     private final ByteBuffer buffer;
     private final int pageId;
 
+    private int parentId;
     private boolean isLeaf;
     private Type valType;
     private int nextNodeId = 0;
-
     private List<Comparable> values = new ArrayList<>();
     private List<Integer> childsIds;
     private List<RowLink> rowLinks;
@@ -37,6 +37,7 @@ public class BTreeNode {
         BTreeNode node = new BTreeNode(page, tree);
         ByteBuffer idxBuf = node.buffer;
         idxBuf.position(Integer.BYTES);
+        node.parentId = idxBuf.getInt();
         node.isLeaf = idxBuf.get() != 0;
         int elementsCount = idxBuf.getInt();
         Type type = node.valType;
@@ -74,11 +75,24 @@ public class BTreeNode {
         return node;
     }
 
+    public static BTreeNode createEmptyNode(DiskPage page, BTree tree) {
+        BTreeNode node = new BTreeNode(page, tree);
+        node.maxElCount = tree.maxNodeElementCount();
+        node.isLeaf = false;
+        node.childsIds = new ArrayList<>();
+        node.setDirty();
+        return node;
+    }
+
+    public int getParentId() {
+        return parentId;
+    }
+
     public void save() {
         if (!dirty)
             return;
-        buffer.position(0);
-        buffer.putInt(pageId);
+        buffer.position(Integer.BYTES);
+        buffer.putInt(parentId);
         buffer.put((byte) (isLeaf ? 1 : 0));
         int elemCount = getElementCount();
         buffer.putInt(elemCount);
@@ -97,10 +111,10 @@ public class BTreeNode {
             }
             buffer.putInt(childsIds.get(elemCount));
         }
+        page.setDirty(true);
     }
 
     private void setDirty() {
-        page.setDirty(true);
         dirty = true;
     }
 
@@ -122,11 +136,51 @@ public class BTreeNode {
         return values;
     }
 
+    public void setValues(List<Comparable> values) {
+        this.values = values;
+        setDirty();
+    }
+
     public int getChild(int i) {
         return childsIds.get(i);
     }
 
     public int getElementCount() {
         return values.size();
+    }
+
+    public void add(BTreeNode node, BTreeNode newNode, Comparable median) {
+        if (isEmpty()) {
+            childsIds.add(node.pageId);
+            values.add(median);
+            childsIds.add(newNode.pageId);
+        } else {
+            int index = childsIds.indexOf(node.pageId);
+            childsIds.add(index + 1, newNode.pageId);
+            values.add(index, median);
+        }
+    }
+
+    private boolean isEmpty() {
+        return getElementCount() == 0;
+    }
+
+    public void setNextNode(BTreeNode nextPage) {
+        this.nextNodeId = nextPage.pageId;
+        setDirty();
+    }
+
+    public List<RowLink> getRowLinks() {
+        return rowLinks;
+    }
+
+    public void setRowLinks(List<RowLink> rowLinks) {
+        this.rowLinks = rowLinks;
+        setDirty();
+    }
+
+    public void setParent(BTreeNode parent) {
+        this.parentId = parent.pageId;
+        setDirty();
     }
 }

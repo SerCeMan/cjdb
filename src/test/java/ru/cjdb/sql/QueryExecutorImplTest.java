@@ -28,6 +28,7 @@ import ru.cjdb.testutils.TestUtils;
 
 import javax.inject.Inject;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static java.util.Arrays.asList;
@@ -177,7 +178,6 @@ public class QueryExecutorImplTest {
     }
 
     @Test
-    @Ignore
     public void testBTreeIndexMiddle() {
         String tableName = TestUtils.createRandomName();
         exec("create table %s (test1 INT, test2 INT)", tableName);
@@ -185,14 +185,20 @@ public class QueryExecutorImplTest {
         String indexName = TestUtils.createRandomName();
         exec("CREATE INDEX %s ON %s(test1) USING BTREE", indexName, tableName);
 
-        int count = 1000;
+        int count = 500;
+        HashSet<Integer> contatiner = new HashSet<>();
         for (int i = 0; i < count; i++) {
             exec("insert into %s values(%s, %s)", tableName, 1, i);
+            contatiner.add(i);
         }
         Cursor cursor = exec("select * from %s where test1=1", tableName).getCursor();
 
         for (int i = 0; i < count; i++) {
-            assertRow(cursor, 1, i);
+            Row row = cursor.nextRow();
+            assertEquals(1, row.getAt(0));
+            Integer element = (Integer) row.getAt(1);
+            assertTrue(contatiner.contains(element));
+            contatiner.remove(element);
         }
         assertEnd(cursor);
     }

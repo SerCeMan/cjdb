@@ -72,7 +72,6 @@ public class InsertQueryHandler extends RegisterableQueryHandler<InsertQuery> {
             indexService.addRow(table, index, freePage.getId(), freeRowId, query.getValues());
         }
 
-        manager.flush();
         return OkQueryResult.INSTANCE;
     }
 
