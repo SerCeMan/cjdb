@@ -29,11 +29,4 @@ public class TestUtils {
             assertEquals(values[i], row.getAt(i));
         }
     }
-
-    public static void assertRow(Cursor cursor, String message, Object... values) {
-        Row row = cursor.nextRow();
-        for (int i = 0; i < values.length; i++) {
-            assertEquals(message, values[i], row.getAt(i));
-        }
-    }
 }

@@ -192,7 +192,7 @@ public class QueryExecutorImplTest {
         Cursor cursor = exec("select * from %s where test1=1", tableName).getCursor();
 
         for (int i = 0; i < count; i++) {
-            assertRow(cursor, "Failed at index" + i, 1, i);
+            assertRow(cursor, 1, i);
         }
         assertEnd(cursor);
     }
