@@ -107,6 +107,7 @@ public class IndexServiceImpl implements IndexService {
         int elementCount = pageBb.getInt();
         if (elementCount == maxLeafElementCount) {
             //expand
+            throw new RuntimeException("Should be expanded!");
         }
         pageBb.position(Integer.BYTES + 1 + Integer.BYTES + elementCount * (type.bytes() + 2 * Integer.BYTES));
         type.write(pageBb, value);

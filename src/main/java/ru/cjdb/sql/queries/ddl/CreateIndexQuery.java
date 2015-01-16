@@ -1,6 +1,5 @@
 package ru.cjdb.sql.queries.ddl;
 
-import ru.cjdb.scheme.dto.Index;
 import ru.cjdb.sql.queries.Query;
 
 import java.util.List;

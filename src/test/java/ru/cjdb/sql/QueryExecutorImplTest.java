@@ -4,6 +4,7 @@ import dagger.Module;
 import dagger.ObjectGraph;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import ru.cjdb.CjDbModule;
 import ru.cjdb.printer.ConsoleResultPrinter;
@@ -174,6 +175,28 @@ public class QueryExecutorImplTest {
         assertRow(cursor, 1, 2);
         assertEnd(cursor);
     }
+
+    @Test
+    @Ignore
+    public void testBTreeIndexMiddle() {
+        String tableName = TestUtils.createRandomName();
+        exec("create table %s (test1 INT, test2 INT)", tableName);
+
+        String indexName = TestUtils.createRandomName();
+        exec("CREATE INDEX %s ON %s(test1) USING BTREE", indexName, tableName);
+
+        int count = 1000;
+        for (int i = 0; i < count; i++) {
+            exec("insert into %s values(%s, %s)", tableName, 1, i);
+        }
+        Cursor cursor = exec("select * from %s where test1=1", tableName).getCursor();
+
+        for (int i = 0; i < count; i++) {
+            assertRow(cursor, "Failed at index" + i, 1, i);
+        }
+        assertEnd(cursor);
+    }
+
 
     @Test
     public void testSimpleWhereLess() {
