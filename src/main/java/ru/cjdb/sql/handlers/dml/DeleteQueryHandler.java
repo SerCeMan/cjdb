@@ -73,7 +73,7 @@ public class DeleteQueryHandler extends RegisterableQueryHandler<DeleteQuery> {
             rowsAffected++;
 
             for(Index index: indexes) {
-                indexService.removeRow(table, index, page.getId(), currentRowId, row);
+                indexService.removeRow(table, index, page.getId(), currentRowId, row.values());
             }
         }
         return new RowAffectedQueryResult(rowsAffected);

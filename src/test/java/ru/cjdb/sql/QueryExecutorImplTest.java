@@ -202,6 +202,47 @@ public class QueryExecutorImplTest {
     }
 
     @Test
+    public void testBTreeIndexUpdate() {
+        String tableName = TestUtils.createRandomName();
+        exec("create table %s (test1 INT, test2 INT)", tableName);
+
+        String indexName = TestUtils.createRandomName();
+        exec("CREATE INDEX %s ON %s(test1) USING BTREE", indexName, tableName);
+
+        exec("insert into %s values(%s, %s)", tableName, 1, 1);
+        exec("insert into %s values(%s, %s)", tableName, 1, 2);
+        exec("insert into %s values(%s, %s)", tableName, 3, 3);
+
+        exec("update %s set test1=%s where test1=%s", tableName, 2, 1);
+
+        Cursor cursor = exec("select * from %s where test1=2", tableName).getCursor();
+        assertRow(cursor, 2, 1);
+        assertRow(cursor, 2, 2);
+        assertEnd(cursor);
+    }
+
+
+    @Test
+    public void testBTreeHashUpdate() {
+        String tableName = TestUtils.createRandomName();
+        exec("create table %s (test1 INT, test2 INT)", tableName);
+
+        String indexName = TestUtils.createRandomName();
+        exec("CREATE INDEX %s ON %s(test1) USING HASH", indexName, tableName);
+
+        exec("insert into %s values(%s, %s)", tableName, 1, 1);
+        exec("insert into %s values(%s, %s)", tableName, 1, 2);
+        exec("insert into %s values(%s, %s)", tableName, 3, 3);
+
+        exec("update %s set test1=%s where test1=%s", tableName, 2, 1);
+
+        Cursor cursor = exec("select * from %s where test1=2", tableName).getCursor();
+        assertRow(cursor, 2, 1);
+        assertRow(cursor, 2, 2);
+        assertEnd(cursor);
+    }
+
+    @Test
     public void testBTreeIndexSmall() {
         String tableName = TestUtils.createRandomName();
         exec("create table %s (test1 INT, test2 INT)", tableName);

@@ -83,23 +83,28 @@ public class IndexServiceImpl implements IndexService {
     }
 
     @Override
-    public void removeRow(Table table, Index index, int pageId, int rowId, Row row) {
+    public void updateRow(Table table, Index index, int pageId, int rowId, Object[] values, Object[] newValues) {
+        removeRow(table, index, pageId, rowId, values);
+        addRow(table, index, pageId, rowId, newValues);
+    }
+
+    @Override
+    public void removeRow(Table table, Index index, int pageId, int rowId, Object[] values) {
         if (index.getType() == IndexType.HASH) {
-            removeHashIndexRow(table, index, pageId, rowId, row);
+            removeHashIndexRow(table, index, pageId, rowId, values);
         } else {
-            removeBTreeIndexRow(table, index, pageId, rowId, row);
+            removeBTreeIndexRow(table, index, pageId, rowId, values);
         }
     }
 
-    private void removeBTreeIndexRow(Table table, Index index, int pageId, int rowId, Row row) {
-        TreeBuilder prepare = new TreeBuilder(table, index, row.values()).invoke();
+    private void removeBTreeIndexRow(Table table, Index index, int pageId, int rowId, Object[] values) {
+        TreeBuilder prepare = new TreeBuilder(table, index, values).invoke();
         BTree tree = prepare.getTree();
         Comparable value = prepare.getValue();
         tree.remove(value, new RowLink(pageId, rowId));
     }
 
-    private void removeHashIndexRow(Table table, Index index, int pageId, int rowId, Row row) {
-        Object[] values = row.values();
+    private void removeHashIndexRow(Table table, Index index, int pageId, int rowId, Object[] values) {
         int bucket = getBucket(table, index, values);
 
         DiskManager diskManager = diskManagerFactory.getForHashIndex(index.getFileName(bucket));
@@ -155,8 +160,20 @@ public class IndexServiceImpl implements IndexService {
             int metadataSize = 2 * Integer.BYTES; // page_id, is_leaf
             int nextPageSize = Integer.BYTES;
             int elCountsize = Integer.BYTES;
-            Column column = null;
+            Object[] values = this.values;
+            Column column = updateValue(values);
+            Type type = column.getType();
+            int maxLeafElementCount = (Constants.PAGE_SIZE - metadataSize - nextPageSize - elCountsize) / (type.bytes() + nextPageSize + nextPageSize);
+            int maxNodeElementCount = (Constants.PAGE_SIZE - metadataSize - nextPageSize - elCountsize) / (type.bytes() + nextPageSize + nextPageSize);
+
+            DiskManager manager = diskManagerFactory.getForBTreeIndex(index.getBTreeName());
+            tree = new BTree(type, manager, maxNodeElementCount, maxLeafElementCount);
+            return this;
+        }
+
+        public Column updateValue(Object[] values) {
             value = null;
+            Column column = null;
             List<Column> columns = table.getColumns();
             for (int i = 0; i < columns.size(); i++) {
                 Column col = columns.get(i);
@@ -165,13 +182,7 @@ public class IndexServiceImpl implements IndexService {
                     column = col;
                 }
             }
-            Type type = column.getType();
-            int maxLeafElementCount = (Constants.PAGE_SIZE - metadataSize - nextPageSize - elCountsize) / (type.bytes() + nextPageSize + nextPageSize);
-            int maxNodeElementCount = (Constants.PAGE_SIZE - metadataSize - nextPageSize - elCountsize) / (type.bytes() + nextPageSize + nextPageSize);
-
-            DiskManager manager = diskManagerFactory.getForBTreeIndex(index.getBTreeName());
-            tree = new BTree(type, manager, maxNodeElementCount, maxLeafElementCount);
-            return this;
+            return column;
         }
     }
 }

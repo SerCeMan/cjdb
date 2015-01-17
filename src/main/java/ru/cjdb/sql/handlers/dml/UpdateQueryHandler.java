@@ -3,12 +3,14 @@ package ru.cjdb.sql.handlers.dml;
 import ru.cjdb.config.ConfigStorage;
 import ru.cjdb.scheme.MetainfoService;
 import ru.cjdb.scheme.dto.Column;
+import ru.cjdb.scheme.dto.Index;
 import ru.cjdb.scheme.dto.Table;
 import ru.cjdb.scheme.types.Type;
 import ru.cjdb.sql.cursor.Cursor;
 import ru.cjdb.sql.cursor.FullScanCursor;
 import ru.cjdb.sql.expressions.BooleanExpression;
 import ru.cjdb.sql.handlers.RegisterableQueryHandler;
+import ru.cjdb.sql.indexes.IndexService;
 import ru.cjdb.sql.queries.dml.UpdateQuery;
 import ru.cjdb.sql.result.QueryResult;
 import ru.cjdb.sql.result.impl.RowAffectedQueryResult;
@@ -37,6 +39,8 @@ public class UpdateQueryHandler extends RegisterableQueryHandler<UpdateQuery> {
     ConfigStorage configStorage;
     @Inject
     DiskManagerFactory diskManagerFactory;
+    @Inject
+    IndexService indexService;
 
     @Inject
     public UpdateQueryHandler() {
@@ -58,6 +62,7 @@ public class UpdateQueryHandler extends RegisterableQueryHandler<UpdateQuery> {
         BooleanExpression condition = query.getCondition();
 
         Cursor cursor = new FullScanCursor(table.getColumns(), columns, condition, bytesPerRow, diskManager);
+        List<Index> indexes = metainfoService.getIndexes(table);
         AtomicInteger rowsAffected = new AtomicInteger(0);
         cursor.forEach(row -> {
             DiskPage page = diskManager.getPage(cursor.currentPageId());
@@ -73,6 +78,9 @@ public class UpdateQueryHandler extends RegisterableQueryHandler<UpdateQuery> {
                 } else {
                     buffer.position(buffer.position() + type.bytes());
                 }
+            }
+            for(Index index : indexes) {
+                indexService.updateRow(table, index, page.getId(), currentRowId, row.values(), query.getValues().values().toArray());
             }
             rowsAffected.incrementAndGet();
         });
