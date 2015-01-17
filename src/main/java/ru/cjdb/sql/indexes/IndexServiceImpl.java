@@ -19,9 +19,13 @@ import ru.cjdb.storage.fs.DiskManagerFactory;
 import ru.cjdb.utils.IndexUtils;
 
 import java.nio.ByteBuffer;
+import java.util.BitSet;
 import java.util.List;
 
 import static ru.cjdb.scheme.dto.Index.IndexType;
+import static ru.cjdb.sql.expressions.BooleanExpression.TRUE_EXPRESSION;
+import static ru.cjdb.storage.DiskPageUtils.metadataSize;
+import static ru.cjdb.utils.IndexUtils.indexBytesPerRow;
 
 /**
  * @author Sergey Tselovalnikov
@@ -54,22 +58,11 @@ public class IndexServiceImpl implements IndexService {
     }
 
     private void addHashIndexRow(Table table, Index index, int pageId, int rowId, Object[] values) {
-        int bucket = -1;
-        List<Column> columns = table.getColumns();
-        for (int i = 0; i < columns.size(); i++) {
-            Column column = columns.get(i);
-            if (index.getColumns().stream().anyMatch(def -> def.getName().equals(column.getName()))) {
-                bucket = values[i].hashCode() % index.getBucketCount();
-            }
-        }
-        assert bucket != -1;
-
+        int bucket = getBucket(table, index, values);
         DiskManager manager = diskManagerFactory.getForHashIndex(index.getFileName(bucket));
         DiskPage freePage = manager.getFreePage();
-
-
         ByteBuffer buffer = ByteBuffer.wrap(freePage.getData());
-        int bytesPerRow = IndexUtils.indexBytesPerRow();
+        int bytesPerRow = indexBytesPerRow();
 
         int freeRowOffset = DiskPageUtils.calculateFreeRowOffset(buffer, bytesPerRow);
 
@@ -106,7 +99,35 @@ public class IndexServiceImpl implements IndexService {
     }
 
     private void removeHashIndexRow(Table table, Index index, int pageId, int rowId, Row row) {
+        Object[] values = row.values();
+        int bucket = getBucket(table, index, values);
 
+        DiskManager diskManager = diskManagerFactory.getForHashIndex(index.getFileName(bucket));
+        List<Column> idXcolumns = IndexUtils.indexColumns();
+        int bytesPerIdxRow = 2 * Integer.BYTES; //page, row
+        FullScanCursor cursor = new FullScanCursor(idXcolumns, idXcolumns, TRUE_EXPRESSION, bytesPerIdxRow, diskManager);
+        while (cursor.nextRow() != null) {
+            DiskPage page = diskManager.getPage(cursor.currentPageId());
+            ByteBuffer buffer = ByteBuffer.wrap(page.getData());
+            BitSet freePagesBitSet = DiskPageUtils.getPageBitMask(metadataSize(indexBytesPerRow()), buffer);
+            int currentRowId = cursor.currentRowId();
+            freePagesBitSet.clear(currentRowId);
+            DiskPageUtils.savePageBitMask(buffer, freePagesBitSet);
+            page.setDirty(true);
+        }
+    }
+
+    private int getBucket(Table table, Index index, Object[] values) {
+        int bucket = -1;
+        List<Column> columns = table.getColumns();
+        for (int i = 0; i < columns.size(); i++) {
+            Column column = columns.get(i);
+            if (index.getColumns().stream().anyMatch(def -> def.getName().equals(column.getName()))) {
+                bucket = values[i].hashCode() % index.getBucketCount();
+            }
+        }
+        assert bucket != -1;
+        return bucket;
     }
 
     private class TreeBuilder {

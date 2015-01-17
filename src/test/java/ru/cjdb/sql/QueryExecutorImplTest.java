@@ -164,6 +164,25 @@ public class QueryExecutorImplTest {
     }
 
     @Test
+    public void testHashIndexRemove() {
+        String tableName = TestUtils.createRandomName();
+        exec("create table %s (test1 INT, test2 INT)", tableName);
+
+        String indexName = TestUtils.createRandomName();
+        exec("CREATE INDEX %s ON %s(test1) USING HASH", indexName, tableName);
+
+        exec("insert into %s values(%s, %s)", tableName, 1, 1);
+        exec("insert into %s values(%s, %s)", tableName, 1, 2);
+        exec("insert into %s values(%s, %s)", tableName, 3, 3);
+
+        exec("delete from %s where test2=%s", tableName, 1);
+
+        Cursor cursor = exec("select * from %s where test1=1", tableName).getCursor();
+        assertRow(cursor, 1, 2);
+        assertEnd(cursor);
+    }
+
+    @Test
     public void testBTreeIndexRemove() {
         String tableName = TestUtils.createRandomName();
         exec("create table %s (test1 INT, test2 INT)", tableName);
