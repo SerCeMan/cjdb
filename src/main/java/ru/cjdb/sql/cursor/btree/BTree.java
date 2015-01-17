@@ -12,7 +12,6 @@ import java.util.List;
  * @since 17.01.15
  */
 public class BTree {
-
     private final int maxLeafElementCount;
     private final int maxNodeElementCount;
     private final DiskManager indexDiskManager;
@@ -33,8 +32,6 @@ public class BTree {
         addToNode(root, value, rowLink);
     }
 
-    // private
-
     private void addToNode(BTreeNode node, Comparable value, RowLink rowLink) {
         if (node.isLeaf()) {
             node.add(value, rowLink);
@@ -49,25 +46,27 @@ public class BTree {
     }
 
     private BTreeNode splitNode(BTreeNode node) {
+        BTreeNode newNode;
+        Comparable median;
         if (node.isLeaf()) {
-            BTreeNode newNode = createLeaf();
+            newNode = createLeaf();
             node.setNextNode(newNode);
-            Comparable median = copyOneHalf(node, newNode);
-            BTreeNode parent = getParent(node);
-            if (parent == null) {
-                parent = createNode();
-                node.setParent(parent);
-                newNode.setParent(parent);
-            }
-            parent.add(node, newNode, median);
-            if (parent.isAlmostFull()) {
-                splitNode(parent);
-            }
-            parent.save();
-            return newNode;
         } else {
-            throw new RuntimeException("Unimplemented yet!");
+            newNode = createNode();
         }
+        median = copyOneHalf(node, newNode);
+        BTreeNode parent = getParent(node);
+        if (parent == null) {
+            parent = createNode();
+            node.setParent(parent);
+        }
+        newNode.setParent(parent);
+        parent.add(node, newNode, median);
+        if (parent.isAlmostFull()) {
+            splitNode(parent);
+        }
+        parent.save();
+        return newNode;
     }
 
     private BTreeNode createNode() {
@@ -81,19 +80,26 @@ public class BTree {
     }
 
     private Comparable copyOneHalf(BTreeNode node, BTreeNode newNode) {
-        Preconditions.checkArgument(node.isLeaf());
-        Preconditions.checkArgument(newNode.isLeaf());
+        if (node.isLeaf() != newNode.isLeaf()) {
+            throw new IllegalStateException("Node should be same leaf state");
+        }
         List<Comparable> values = node.getValues();
         int medianNum = values.size() / 2;
 
         node.setValues(values.subList(0, medianNum));
         newNode.setValues(values.subList(medianNum, values.size()));
 
-        List<RowLink> rowLinks = node.getRowLinks();
-        node.setRowLinks(rowLinks.subList(0, medianNum));
-        newNode.setRowLinks(rowLinks.subList(medianNum, rowLinks.size()));
-
-        return values.get(medianNum);
+        if (node.isLeaf()) {
+            List<RowLink> rowLinks = node.getRowLinks();
+            node.setRowLinks(rowLinks.subList(0, medianNum));
+            newNode.setRowLinks(rowLinks.subList(medianNum, rowLinks.size()));
+            return values.get(medianNum);
+        } else {
+            List<Integer> childsIds = node.getChildsIds();
+            node.setChildsIds(childsIds.subList(0, medianNum + 1));
+            newNode.setChildsIds(childsIds.subList(medianNum + 1, childsIds.size()));
+            return values.get(medianNum);
+        }
     }
 
     private BTreeNode getParent(BTreeNode node) {
@@ -106,7 +112,7 @@ public class BTree {
     }
 
     private BTreeNode findChild(BTreeNode node, Comparable value) {
-        Preconditions.checkArgument(!node.isLeaf(), "Node should have childs");
+        Preconditions.checkArgument(!node.isLeaf(), "Node should be leaf");
         List<Comparable> values = node.getValues();
         for (int i = 0; i < values.size(); i++) {
             if (value.compareTo(values.get(i)) < 0) {
@@ -124,19 +130,7 @@ public class BTree {
         return BTreeNode.load(page, this);
     }
 
-    Type valType() {
-        return valType;
-    }
-
-    int maxLeafElementCount() {
-        return maxLeafElementCount;
-    }
-
-    int maxNodeElementCount() {
-        return maxNodeElementCount;
-    }
-
-    public BTreeNode getRoot() {
+    private BTreeNode getRoot() {
         BTreeNode node = getNode(0);
         if (node == null) {
             return null;
@@ -148,5 +142,17 @@ public class BTree {
             }
             node = parent;
         }
+    }
+
+    Type valType() {
+        return valType;
+    }
+
+    int maxLeafElementCount() {
+        return maxLeafElementCount;
+    }
+
+    int maxNodeElementCount() {
+        return maxNodeElementCount;
     }
 }

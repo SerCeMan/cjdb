@@ -29,6 +29,7 @@ import ru.cjdb.testutils.TestUtils;
 import javax.inject.Inject;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static java.util.Arrays.asList;
@@ -46,6 +47,10 @@ public class QueryExecutorImplTest {
     QueryExecutor queryExecutor;
     @Inject
     QueryParser queryParser;
+
+    private static void assertEnd(Cursor cursor) {
+        assertNull(cursor.nextRow());
+    }
 
     @Before
     public void setup() {
@@ -98,7 +103,6 @@ public class QueryExecutorImplTest {
         assertRow(cursor, 2, 2);
         assertRow(cursor, 3, 3);
     }
-
 
     @Test
     public void testDifferentColumns() {
@@ -204,6 +208,61 @@ public class QueryExecutorImplTest {
         assertEnd(cursor);
     }
 
+    @Test
+    public void testBTreeIndexOneLevel() {
+        String tableName = TestUtils.createRandomName();
+        exec("create table %s (test1 INT, test2 INT)", tableName);
+
+        String indexName = TestUtils.createRandomName();
+        exec("CREATE INDEX %s ON %s(test1) USING BTREE", indexName, tableName);
+
+        int count = 16000; // works for 1600000
+        HashSet<Integer> contatiner = new HashSet<>();
+        for (int i = 0; i < count; i++) {
+            exec("insert into %s values(%s, %s)", tableName, i, i);
+            contatiner.add(i);
+        }
+        Cursor cursor = exec("select * from %s where test1<" + (count + 1), tableName).getCursor();
+
+        for (int i = 0; i < count; i++) {
+            Row row = cursor.nextRow();
+            assertEquals(row.getAt(1), row.getAt(0));
+            Integer element = (Integer) row.getAt(1);
+            assertTrue(contatiner.contains(element));
+            contatiner.remove(element);
+        }
+        assertTrue(contatiner.isEmpty());
+        assertEnd(cursor);
+    }
+
+    @Test
+    public void testBTreeIndexManyLevel() {
+        String tableName = TestUtils.createRandomName();
+        exec("create table %s (test1 VARCHAR(200), test2 INT)", tableName);
+
+        String indexName = TestUtils.createRandomName();
+        exec("CREATE INDEX %s ON %s(test1) USING BTREE", indexName, tableName);
+
+        int count = 20000;
+        HashSet<String> contatiner = new HashSet<>();
+        for (int i = 0; i < count; i++) {
+            String val = String.valueOf(i);
+            exec("insert into %s values('%s', %s)", tableName, val, i);
+            if (!val.startsWith("9")) {
+                contatiner.add(val);
+            }
+        }
+        Cursor cursor = exec("select * from %s where test1<'9'", tableName).getCursor();
+
+        while (!contatiner.isEmpty()) {
+            Row row = cursor.nextRow();
+            String element = (String) row.getAt(0);
+            assertTrue(contatiner.contains(element));
+            contatiner.remove(element);
+        }
+        assertTrue(contatiner.isEmpty());
+        assertEnd(cursor);
+    }
 
     @Test
     public void testSimpleWhereLess() {
@@ -255,7 +314,6 @@ public class QueryExecutorImplTest {
         assertTrue(cursor.nextRow() == null);
     }
 
-
     @Test
     public void testSimpleDelete() {
         String tableName = TestUtils.createRandomName();
@@ -280,7 +338,6 @@ public class QueryExecutorImplTest {
         assertRow(cursor, 6, 6);
         assertTrue(cursor.nextRow() == null);
     }
-
 
     @Test
     public void testSimpleWhere() {
@@ -447,7 +504,7 @@ public class QueryExecutorImplTest {
         return queryExecutor.execute(query);
     }
 
-//    @Test
+    //    @Test
     public void indexSimplePerfTest() {
         // use JMH, i know, i know, but 4 second is not nanoseconds
         String tableName = TestUtils.createRandomName();
@@ -483,11 +540,6 @@ public class QueryExecutorImplTest {
 
         assertEquals(expect, actual);
     }
-
-    private static void assertEnd(Cursor cursor) {
-        assertNull(cursor.nextRow());
-    }
-
 
     @Module(injects = QueryExecutorImplTest.class, includes = {CjDbModule.class, QueryParserModule.class})
     public static final class QueryExecutorImplTestModule {

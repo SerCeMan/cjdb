@@ -5,8 +5,9 @@ import ru.cjdb.storage.DiskPage;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+
+import static java.util.Collections.unmodifiableList;
 
 /**
  * @author Sergey Tselovalnikov
@@ -26,6 +27,7 @@ public class BTreeNode {
     private List<RowLink> rowLinks;
     private boolean dirty = false;
     private int maxElCount;
+
 
     private BTreeNode(DiskPage page, BTree tree) {
         this.page = page;
@@ -85,6 +87,15 @@ public class BTreeNode {
         return node;
     }
 
+    public List<Integer> getChildsIds() {
+        return unmodifiableList(childsIds);
+    }
+
+    public void setChildsIds(List<Integer> childsIds) {
+        this.childsIds = childsIds;
+        setDirty();
+    }
+
     public int getParentId() {
         return parentId;
     }
@@ -134,7 +145,7 @@ public class BTreeNode {
     }
 
     public List<Comparable> getValues() {
-        return Collections.unmodifiableList(values);
+        return unmodifiableList(values);
     }
 
     public void setValues(List<Comparable> values) {
@@ -174,7 +185,7 @@ public class BTreeNode {
     }
 
     public List<RowLink> getRowLinks() {
-        return Collections.unmodifiableList(rowLinks);
+        return unmodifiableList(rowLinks);
     }
 
     public void setRowLinks(List<RowLink> rowLinks) {

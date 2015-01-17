@@ -52,7 +52,11 @@ public class VarcharType implements Type {
     public Comparable read(ByteBuffer buffer) {
         byte[] array = new byte[length];
         buffer.get(array);
-        return new String(array, Charset.forName("US-ASCII")).replaceAll("\u0000", "");
+        int actlen = 0;
+        while (actlen < array.length && array[actlen] != 0) {
+            actlen++;
+        }
+        return new String(array, 0, actlen, Charset.forName("US-ASCII"));
     }
 
     @Override
