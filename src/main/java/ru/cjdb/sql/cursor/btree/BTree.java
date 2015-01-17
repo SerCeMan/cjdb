@@ -5,6 +5,7 @@ import ru.cjdb.scheme.types.Type;
 import ru.cjdb.storage.DiskPage;
 import ru.cjdb.storage.fs.DiskManager;
 
+import java.util.HashSet;
 import java.util.List;
 
 /**
@@ -154,5 +155,33 @@ public class BTree {
 
     int maxNodeElementCount() {
         return maxNodeElementCount;
+    }
+
+    public void remove(Comparable value, RowLink rowLink) {
+        remove(getRoot(), value, rowLink);
+    }
+
+    private void remove(BTreeNode node, Comparable value, RowLink rowLink) {
+        if (node.isLeaf()) {
+            boolean finish = node.getValues().isEmpty();
+            HashSet<Integer> toRemove = new HashSet<>();
+            List<Comparable> values = node.getValues();
+            for (int i = 0; i < values.size(); i++) {
+                Comparable val = values.get(i);
+                if (value.compareTo(val) > 0) {
+                    finish = true;
+                }
+                if (value.equals(val) && rowLink.equals(node.getRowLinks().get(i))) {
+                    toRemove.add(i);
+                }
+            }
+            toRemove.forEach(node::removeElement);
+            node.save();
+            if (!finish && node.getNextNodeId() != 0) {
+                remove(getNode(node.getNextNodeId()), value, rowLink);
+            }
+        } else {
+            remove(findChild(node, value), value, rowLink);
+        }
     }
 }

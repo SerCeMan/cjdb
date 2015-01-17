@@ -10,6 +10,7 @@ import ru.cjdb.sql.cursor.FullScanCursor;
 import ru.cjdb.sql.cursor.btree.BTree;
 import ru.cjdb.sql.cursor.btree.RowLink;
 import ru.cjdb.sql.expressions.BooleanExpression;
+import ru.cjdb.sql.result.Row;
 import ru.cjdb.storage.Constants;
 import ru.cjdb.storage.DiskPage;
 import ru.cjdb.storage.DiskPageUtils;
@@ -46,26 +47,10 @@ public class IndexServiceImpl implements IndexService {
     }
 
     private void addBTreeIndexRow(Table table, Index index, int pageId, int rowId, Object[] values) {
-        DiskManager manager = diskManagerFactory.getForBTreeIndex(index.getBTreeName());
-        int metadataSize = 2 * Integer.BYTES; // page_id, is_leaf
-        int nextPageSize = Integer.BYTES;
-        int elCountsize = Integer.BYTES;
-        Column column = null;
-        Object value = null;
-        List<Column> columns = table.getColumns();
-        for (int i = 0; i < columns.size(); i++) {
-            Column col = columns.get(i);
-            if (index.getColumns().stream().anyMatch(def -> def.getName().equals(col.getName()))) {
-                value = values[i];
-                column = col;
-            }
-        }
-        Type type = column.getType();
-        int maxLeafElementCount = (Constants.PAGE_SIZE - metadataSize - nextPageSize - elCountsize) / (type.bytes() + nextPageSize + nextPageSize);
-        int maxNodeElementCount = (Constants.PAGE_SIZE - metadataSize - nextPageSize - elCountsize) / (type.bytes() + nextPageSize + nextPageSize);
-
-        BTree tree = new BTree(type, manager, maxNodeElementCount, maxLeafElementCount);
-        tree.add((Comparable) value, new RowLink(pageId, rowId));
+        TreeBuilder prepare = new TreeBuilder(table, index, values).invoke();
+        BTree tree = prepare.getTree();
+        Comparable value = prepare.getValue();
+        tree.add(value, new RowLink(pageId, rowId));
     }
 
     private void addHashIndexRow(Table table, Index index, int pageId, int rowId, Object[] values) {
@@ -102,5 +87,70 @@ public class IndexServiceImpl implements IndexService {
         Cursor cursor = new FullScanCursor(columns, columns, BooleanExpression.TRUE_EXPRESSION,
                 bytesPerRow, diskManagerFactory.get(table.getName()));
         cursor.forEach(row -> addRow(table, index, cursor.currentPageId(), cursor.currentRowId(), row.values()));
+    }
+
+    @Override
+    public void removeRow(Table table, Index index, int pageId, int rowId, Row row) {
+        if (index.getType() == IndexType.HASH) {
+            removeHashIndexRow(table, index, pageId, rowId, row);
+        } else {
+            removeBTreeIndexRow(table, index, pageId, rowId, row);
+        }
+    }
+
+    private void removeBTreeIndexRow(Table table, Index index, int pageId, int rowId, Row row) {
+        TreeBuilder prepare = new TreeBuilder(table, index, row.values()).invoke();
+        BTree tree = prepare.getTree();
+        Comparable value = prepare.getValue();
+        tree.remove(value, new RowLink(pageId, rowId));
+    }
+
+    private void removeHashIndexRow(Table table, Index index, int pageId, int rowId, Row row) {
+
+    }
+
+    private class TreeBuilder {
+        private Table table;
+        private Index index;
+        private Object[] values;
+        private Object value;
+        private BTree tree;
+
+        public TreeBuilder(Table table, Index index, Object... values) {
+            this.table = table;
+            this.index = index;
+            this.values = values;
+        }
+
+        public Comparable getValue() {
+            return (Comparable) value;
+        }
+
+        public BTree getTree() {
+            return tree;
+        }
+
+        public TreeBuilder invoke() {
+            int metadataSize = 2 * Integer.BYTES; // page_id, is_leaf
+            int nextPageSize = Integer.BYTES;
+            int elCountsize = Integer.BYTES;
+            Column column = null;
+            value = null;
+            List<Column> columns = table.getColumns();
+            for (int i = 0; i < columns.size(); i++) {
+                Column col = columns.get(i);
+                if (index.getColumns().stream().anyMatch(def -> def.getName().equals(col.getName()))) {
+                    value = values[i];
+                    column = col;
+                }
+            }
+            Type type = column.getType();
+            int maxLeafElementCount = (Constants.PAGE_SIZE - metadataSize - nextPageSize - elCountsize) / (type.bytes() + nextPageSize + nextPageSize);
+            int maxNodeElementCount = (Constants.PAGE_SIZE - metadataSize - nextPageSize - elCountsize) / (type.bytes() + nextPageSize + nextPageSize);
+
+            DiskManager manager = diskManagerFactory.getForBTreeIndex(index.getBTreeName());
+            tree = new BTree(type, manager, maxNodeElementCount, maxLeafElementCount);
+            return this;
+        }
     }
 }

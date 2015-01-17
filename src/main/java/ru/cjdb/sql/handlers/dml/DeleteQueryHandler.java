@@ -3,13 +3,16 @@ package ru.cjdb.sql.handlers.dml;
 import ru.cjdb.config.ConfigStorage;
 import ru.cjdb.scheme.MetainfoService;
 import ru.cjdb.scheme.dto.Column;
+import ru.cjdb.scheme.dto.Index;
 import ru.cjdb.scheme.dto.Table;
 import ru.cjdb.sql.cursor.Cursor;
 import ru.cjdb.sql.cursor.FullScanCursor;
 import ru.cjdb.sql.expressions.BooleanExpression;
 import ru.cjdb.sql.handlers.RegisterableQueryHandler;
+import ru.cjdb.sql.indexes.IndexService;
 import ru.cjdb.sql.queries.dml.DeleteQuery;
 import ru.cjdb.sql.result.QueryResult;
+import ru.cjdb.sql.result.Row;
 import ru.cjdb.sql.result.impl.RowAffectedQueryResult;
 import ru.cjdb.storage.DiskPage;
 import ru.cjdb.storage.DiskPageUtils;
@@ -35,6 +38,8 @@ public class DeleteQueryHandler extends RegisterableQueryHandler<DeleteQuery> {
     ConfigStorage configStorage;
     @Inject
     DiskManagerFactory diskManagerFactory;
+    @Inject
+    IndexService indexService;
 
     @Inject
     public DeleteQueryHandler() {
@@ -54,7 +59,9 @@ public class DeleteQueryHandler extends RegisterableQueryHandler<DeleteQuery> {
 
         Cursor cursor = new FullScanCursor(table.getColumns(), columns, condition, bytesPerRow, diskManager);
         int rowsAffected = 0;
-        while (cursor.nextRow() != null) {
+        List<Index> indexes = metainfoService.getIndexes(table);
+        Row row;
+        while ((row = cursor.nextRow()) != null) {
             DiskPage page = diskManager.getPage(cursor.currentPageId());
             ByteBuffer buffer = ByteBuffer.wrap(page.getData());
             BitSet freePagesBitSet = DiskPageUtils.getPageBitMask(metaDataSize, buffer);
@@ -64,6 +71,10 @@ public class DeleteQueryHandler extends RegisterableQueryHandler<DeleteQuery> {
             DiskPageUtils.savePageBitMask(buffer, freePagesBitSet);
             page.setDirty(true);
             rowsAffected++;
+
+            for(Index index: indexes) {
+                indexService.removeRow(table, index, page.getId(), currentRowId, row);
+            }
         }
         return new RowAffectedQueryResult(rowsAffected);
     }

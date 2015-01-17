@@ -197,4 +197,14 @@ public class BTreeNode {
         this.parentId = parent.pageId;
         setDirty();
     }
+
+    public void removeElement(int idx) {
+        values.remove(idx);
+        rowLinks.remove(idx);
+        setDirty();
+    }
+
+    public int getNextNodeId() {
+        return nextNodeId;
+    }
 }
