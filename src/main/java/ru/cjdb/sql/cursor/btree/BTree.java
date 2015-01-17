@@ -26,7 +26,7 @@ public class BTree {
     }
 
     public void add(Comparable value, RowLink rowLink) {
-        BTreeNode root = getNode(0);
+        BTreeNode root = getRoot();
         if (root == null) {
             root = createLeaf();
         }
@@ -60,6 +60,9 @@ public class BTree {
                 newNode.setParent(parent);
             }
             parent.add(node, newNode, median);
+            if (parent.isAlmostFull()) {
+                splitNode(parent);
+            }
             parent.save();
             return newNode;
         } else {
@@ -94,7 +97,7 @@ public class BTree {
     }
 
     private BTreeNode getParent(BTreeNode node) {
-        if(node.getParentId() == 0) {
+        if (node.getParentId() == 0) {
             return null;
         }
         BTreeNode parent = getNode(node.getParentId());
@@ -131,5 +134,19 @@ public class BTree {
 
     int maxNodeElementCount() {
         return maxNodeElementCount;
+    }
+
+    public BTreeNode getRoot() {
+        BTreeNode node = getNode(0);
+        if (node == null) {
+            return null;
+        }
+        while (true) {
+            BTreeNode parent = getParent(node);
+            if (parent == null) {
+                return node;
+            }
+            node = parent;
+        }
     }
 }

@@ -185,7 +185,7 @@ public class QueryExecutorImplTest {
         String indexName = TestUtils.createRandomName();
         exec("CREATE INDEX %s ON %s(test1) USING BTREE", indexName, tableName);
 
-        int count = 500;
+        int count = 1500;
         HashSet<Integer> contatiner = new HashSet<>();
         for (int i = 0; i < count; i++) {
             exec("insert into %s values(%s, %s)", tableName, 1, i);
@@ -200,6 +200,7 @@ public class QueryExecutorImplTest {
             assertTrue(contatiner.contains(element));
             contatiner.remove(element);
         }
+        assertTrue(contatiner.isEmpty());
         assertEnd(cursor);
     }
 

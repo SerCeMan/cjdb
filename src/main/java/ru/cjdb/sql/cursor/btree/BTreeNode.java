@@ -5,6 +5,7 @@ import ru.cjdb.storage.DiskPage;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -133,7 +134,7 @@ public class BTreeNode {
     }
 
     public List<Comparable> getValues() {
-        return values;
+        return Collections.unmodifiableList(values);
     }
 
     public void setValues(List<Comparable> values) {
@@ -159,6 +160,7 @@ public class BTreeNode {
             childsIds.add(index + 1, newNode.pageId);
             values.add(index, median);
         }
+        setDirty();
     }
 
     private boolean isEmpty() {
@@ -166,12 +168,13 @@ public class BTreeNode {
     }
 
     public void setNextNode(BTreeNode nextPage) {
-        this.nextNodeId = nextPage.pageId;
+        nextPage.nextNodeId = nextNodeId;
+        nextNodeId = nextPage.pageId;
         setDirty();
     }
 
     public List<RowLink> getRowLinks() {
-        return rowLinks;
+        return Collections.unmodifiableList(rowLinks);
     }
 
     public void setRowLinks(List<RowLink> rowLinks) {
